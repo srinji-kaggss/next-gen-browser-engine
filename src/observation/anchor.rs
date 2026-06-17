@@ -1,4 +1,4 @@
-//! Traceability: AXIOM_OBSERVABILITY_TYPED, AXIOM_BRAID_CANONICAL.
+//! Traceability: AXIOM_OBSERVABILITY_TYPED, AXIOM_BRAID_CANONICAL, AXIOM_PRIVACY_TIER.
 use crate::browser_types::*;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -9,6 +9,9 @@ pub struct ObservationAnchor {
     pub target_cid: Cid,
     pub observed_at: String,
     pub facts: Vec<Fact>,
+    pub sensitivity: Option<SensitivityClass>,
+    pub privacy_tier: PrivacyTier,
+    pub trust_class: TrustClass,
     pub raw_source: Option<String>,
 }
 
@@ -22,6 +25,8 @@ pub enum ObservationKind {
     Console,
     A11y,
     Semantic,
+    AipState,
+    AipPolicy,
 }
 
 impl ObservationKind {
@@ -35,6 +40,8 @@ impl ObservationKind {
             ObservationKind::Console => "console",
             ObservationKind::A11y => "a11y",
             ObservationKind::Semantic => "semantic",
+            ObservationKind::AipState => "aip_state",
+            ObservationKind::AipPolicy => "aip_policy",
         }
     }
 }
@@ -43,4 +50,5 @@ impl ObservationKind {
 pub struct Fact {
     pub predicate: String,
     pub object: String,
+    pub sensitivity: Option<SensitivityClass>,
 }

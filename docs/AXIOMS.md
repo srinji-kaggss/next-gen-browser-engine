@@ -71,3 +71,23 @@ secondary, fail-closed safety net.
 Every frame, every allocation, and every network fetch has a declared budget.
 Budget violations are facts on the tape and may trigger policy decisions.
 Performance regressions fail the CI gate.
+
+## A14 — AIP Is a First-Class Wire Lens
+The engine ingests Agent Interface Protocol (AIP) state, actions, and policy
+surfaces natively. AIP is a wire format consumed by the Braid bridge, not a
+competing canonical IR. Legacy sites degrade to derived symbolic state.
+
+## A15 — Privacy Tier Precedes Model Exposure
+No field or observation reaches a cloud model without passing through the
+privacy tier, sensitivity classification, redaction projection, and user consent
+gates. Authenticator and secret classes are never cloud-visible.
+
+## A16 — DID-Backed Delegation Binds Capabilities
+Every capability token carries a DID principal chain: user principal, pairwise
+session DID, agent runtime DID, and site DID. Unbounded, unsigned, or
+expired delegation is unrepresentable.
+
+## A17 — Small-Model Operability Is a Design Constraint
+For basic tasks the symbolic interface must expose a finite, typed action set
+small enough for a local 2B model to choose from. First target: `|valid actions|
+<= 12`.

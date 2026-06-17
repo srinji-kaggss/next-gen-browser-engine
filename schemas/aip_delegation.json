@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://next-gen-browser-engine.ai/schemas/aip_delegation.json",
+  "title": "AIP Agent Delegation Envelope",
+  "description": "Signed, scoped, time-bounded delegation from a user DID to an agent runtime DID.",
+  "type": "object",
+  "required": ["type", "issuer", "holder", "audience", "scope", "privacy_tier", "ttl_seconds", "proof"],
+  "properties": {
+    "type": { "const": "AgentDelegationEnvelope" },
+    "issuer": { "type": "string", "description": "Pairwise/session DID controlled by user" },
+    "holder": { "type": "string", "description": "Agent/browser runtime DID" },
+    "audience": { "type": "string", "format": "uri" },
+    "scope": { "type": "array", "items": { "type": "string" } },
+    "denied": { "type": "array", "items": { "type": "string" } },
+    "privacy_tier": {
+      "enum": ["local_full", "cloud_redacted", "cloud_selective_reveal", "cloud_full_context_explicit"]
+    },
+    "ttl_seconds": { "type": "integer", "minimum": 1, "maximum": 86400 },
+    "proof": { "type": "object" },
+    "revocation": { "type": "object" }
+  }
+}

@@ -48,6 +48,13 @@ This is defense in depth, not detection theater.
 - `PageInstructionFirewall` strips instruction-like patterns before LLM
   consumption.
 - LLM output is not authority; it is filtered through typed action proposal.
+- Every fact carries a **trust class**:
+  - `SYSTEM_POLICY` — browser/site/user policy; never overridden by page content.
+  - `DEVELOPER_POLICY` — site-signed agent schema and policy.
+  - `USER_INTENT` — current user goal.
+  - `TRUSTED_STATE` — signed/typed state from same-origin app runtime.
+  - `UNTRUSTED_CONTENT` — user-generated content, ads, comments, email bodies.
+- Untrusted content cannot become instructions.
 
 ### Extension malware
 - No extension model in the substrate. All code is either page code

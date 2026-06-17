@@ -37,3 +37,15 @@ pub const AXIOM_HUMAN_DEFERRAL: &str =
 
 pub const AXIOM_ANTIVIRUS: &str =
     "The browser acts as world-class anti-malware: deny-first, confine, and audit.";
+
+pub const AXIOM_AIP_WIRE_LENS: &str =
+    "AIP is a first-class wire lens consumed by the Braid bridge, not a competing canonical IR.";
+
+pub const AXIOM_PRIVACY_TIER: &str =
+    "Privacy tier, sensitivity classification, and redaction precede any model exposure.";
+
+pub const AXIOM_DID_DELEGATION: &str =
+    "Every capability token is bound to a DID principal chain; unbounded delegation is unrepresentable.";
+
+pub const AXIOM_SMALL_MODEL: &str =
+    "Basic tasks expose a finite typed action set small enough for a local 2B model.";

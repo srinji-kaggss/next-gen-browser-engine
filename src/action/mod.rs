@@ -1,3 +1,4 @@
+//! Traceability: AXIOM_CLOSED_ACTIONS, AXIOM_SMALL_MODEL.
 use crate::browser_types::*;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -7,6 +8,7 @@ pub struct Action {
     pub verb: ActionVerb,
     pub target_cid: Cid,
     pub capability: String,
+    pub risk: Risk,
     pub parameters: Vec<u8>,
     pub effect_signature: Vec<String>,
 }

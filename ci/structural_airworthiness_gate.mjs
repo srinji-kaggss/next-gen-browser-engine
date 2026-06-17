@@ -33,7 +33,7 @@ if (phase === 'foundation' || phase === 'all') {
     'AXIOMS.md', 'TOPOGRAPHY.md', 'DO178_PLAN.md', 'DEFENSE_IN_DEPTH.md',
     'PERFORMANCE.md', 'OBSERVABILITY.md', 'MACHINE_HUMAN_MEETING.md',
     'JS_WASM_POSITION.md', 'HUMAN_LENS_DEFERRAL.md', 'BRAID_BRIDGE.md',
-    'ANTIVIRUS_BROWSER.md', 'LOCKED_FILES.md'
+    'ANTIVIRUS_BROWSER.md', 'LOCKED_FILES.md', 'AIP_INTEGRATION.md'
   ];
   for (const doc of requiredDocs) {
     const path = join(docsDir, doc);
@@ -62,20 +62,21 @@ if (phase === 'docs' || phase === 'all') {
 }
 
 if (phase === 'vocab' || phase === 'all') {
-  const allowed = new Set([
+  const allowedVerbs = new Set([
     'web.navigate', 'web.observe', 'web.click', 'web.type', 'web.scroll',
     'web.download', 'web.wait', 'web.execute_js', 'web.execute_wasm'
   ]);
   const termFamilies = new Set([
     'web.element', 'web.observation', 'web.action', 'web.capability',
-    'web.verdict', 'web.transition'
+    'web.verdict', 'web.transition', 'web.obs.aip_state', 'web.obs.aip_policy',
+    'web.act.aip_action', 'web.cap.aip_delegation'
   ]);
   for (const file of srcFiles()) {
     const text = readText(file);
-    const matches = [...text.matchAll(/web\.[a-z_]+/g)].map(m => m[0]);
+    const matches = [...text.matchAll(/web\.[a-z_]+(?:\.[a-z_]+)?/g)].map(m => m[0]);
     for (const m of matches) {
       if (termFamilies.has(m)) continue;
-      if (!allowed.has(m)) fail(`${relative(root, file)} uses unapproved action verb ${m}`);
+      if (!allowedVerbs.has(m)) fail(`${relative(root, file)} uses unapproved action verb ${m}`);
     }
   }
 }
@@ -134,7 +135,10 @@ if (phase === 'prompt-inject' || phase === 'all') {
 }
 
 if (phase === 'schema' || phase === 'all') {
-  const required = ['web_anchor.json', 'web_action.json', 'web_observation.json', 'web_capability.json', 'web_tape.json'];
+  const required = [
+    'web_anchor.json', 'web_action.json', 'web_observation.json', 'web_capability.json', 'web_tape.json',
+    'aip_policy.json', 'aip_state.json', 'aip_delegation.json', 'aip_privacy.json'
+  ];
   for (const s of required) {
     try { statSync(join(schemasDir, s)); }
     catch { fail(`missing schema ${s}`); }

@@ -1,10 +1,11 @@
-//! Traceability: AXIOM_BRAID_CANONICAL.
+//! Traceability: AXIOM_BRAID_CANONICAL, AXIOM_PRIVACY_TIER, AXIOM_DID_DELEGATION.
 use alloc::string::String;
 use alloc::vec::Vec;
 
 pub type Cid = String;
 pub type Origin = String;
 pub type Url = String;
+pub type Did = String;
 
 /// A content-addressed fact in the Braid fabric.
 #[derive(Debug, Clone, PartialEq)]
@@ -24,6 +25,10 @@ pub enum TermFamily {
     Capability,
     Verdict,
     Transition,
+    AipState,
+    AipPolicy,
+    AipAction,
+    AipDelegation,
 }
 
 impl TermFamily {
@@ -35,6 +40,10 @@ impl TermFamily {
             TermFamily::Capability => "web.capability",
             TermFamily::Verdict => "web.verdict",
             TermFamily::Transition => "web.transition",
+            TermFamily::AipState => "web.obs.aip_state",
+            TermFamily::AipPolicy => "web.obs.aip_policy",
+            TermFamily::AipAction => "web.act.aip_action",
+            TermFamily::AipDelegation => "web.cap.aip_delegation",
         }
     }
 }
@@ -43,6 +52,102 @@ impl TermFamily {
 pub struct Provenance {
     pub source: String,
     pub input_cids: Vec<Cid>,
+    pub trust_class: TrustClass,
+    pub did_principal: Option<Did>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TrustClass {
+    SystemPolicy,
+    DeveloperPolicy,
+    UserIntent,
+    TrustedState,
+    UntrustedContent,
+}
+
+impl TrustClass {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            TrustClass::SystemPolicy => "SYSTEM_POLICY",
+            TrustClass::DeveloperPolicy => "DEVELOPER_POLICY",
+            TrustClass::UserIntent => "USER_INTENT",
+            TrustClass::TrustedState => "TRUSTED_STATE",
+            TrustClass::UntrustedContent => "UNTRUSTED_CONTENT",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PrivacyTier {
+    LocalFull,
+    CloudRedacted,
+    CloudSelectiveReveal,
+    CloudFullContextExplicit,
+}
+
+impl PrivacyTier {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PrivacyTier::LocalFull => "local_full",
+            PrivacyTier::CloudRedacted => "cloud_redacted",
+            PrivacyTier::CloudSelectiveReveal => "cloud_selective_reveal",
+            PrivacyTier::CloudFullContextExplicit => "cloud_full_context_explicit",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SensitivityClass {
+    Public,
+    LowSensitivity,
+    Personal,
+    Confidential,
+    Secret,
+    Authenticator,
+    Payment,
+    Health,
+    Legal,
+    Financial,
+    ChildOrDependent,
+}
+
+impl SensitivityClass {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            SensitivityClass::Public => "PUBLIC",
+            SensitivityClass::LowSensitivity => "LOW_SENSITIVITY",
+            SensitivityClass::Personal => "PERSONAL",
+            SensitivityClass::Confidential => "CONFIDENTIAL",
+            SensitivityClass::Secret => "SECRET",
+            SensitivityClass::Authenticator => "AUTHENTICATOR",
+            SensitivityClass::Payment => "PAYMENT",
+            SensitivityClass::Health => "HEALTH",
+            SensitivityClass::Legal => "LEGAL",
+            SensitivityClass::Financial => "FINANCIAL",
+            SensitivityClass::ChildOrDependent => "CHILD_OR_DEPENDENT",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Risk {
+    Low,
+    Medium,
+    High,
+    HumanOnly,
+    Denied,
+}
+
+impl Risk {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Risk::Low => "low",
+            Risk::Medium => "medium",
+            Risk::High => "high",
+            Risk::HumanOnly => "human_only",
+            Risk::Denied => "denied",
+        }
+    }
 }
 
 /// Closed-vocabulary action verbs.

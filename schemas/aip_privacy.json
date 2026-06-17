@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://next-gen-browser-engine.ai/schemas/aip_privacy.json",
+  "title": "AIP Privacy Tier",
+  "description": "Privacy-accuracy tradeoff governing what a model may see.",
+  "type": "object",
+  "required": ["privacy_tier", "model_location", "cloud_exposure", "sensitive_classes"],
+  "properties": {
+    "privacy_tier": {
+      "enum": ["local_full", "cloud_redacted", "cloud_selective_reveal", "cloud_full_context_explicit"]
+    },
+    "model_location": { "enum": ["local", "cloud", "hybrid"] },
+    "cloud_exposure": {
+      "type": "object",
+      "properties": {
+        "raw_values": { "type": "boolean" },
+        "redacted_values": { "type": "boolean" },
+        "field_labels": { "type": "boolean" },
+        "state_only": { "type": "boolean" },
+        "training_allowed": { "type": "boolean" },
+        "retention": { "enum": ["none", "session", "time_limited", "persistent"] }
+      }
+    },
+    "sensitive_classes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "PUBLIC", "LOW_SENSITIVITY", "PERSONAL", "CONFIDENTIAL", "SECRET",
+          "AUTHENTICATOR", "PAYMENT", "HEALTH", "LEGAL", "FINANCIAL", "CHILD_OR_DEPENDENT"
+        ]
+      }
+    },
+    "requires_user_approval": { "type": "boolean" },
+    "audit_required": { "type": "boolean" }
+  }
+}

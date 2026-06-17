@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://next-gen-browser-engine.ai/schemas/aip_policy.json",
+  "title": "AIP Site Policy",
+  "description": "Site-declared policy for agent observation, action, training, and export.",
+  "type": "object",
+  "required": ["version", "site", "agent_observation", "training_policy"],
+  "properties": {
+    "version": { "type": "string" },
+    "site": { "type": "string" },
+    "agent_observation": {
+      "type": "object",
+      "required": ["allowed", "scope", "retention", "training", "export", "bulk_access"],
+      "properties": {
+        "allowed": { "type": "boolean" },
+        "scope": { "enum": ["current_user_session", "public_pages", "denied"] },
+        "retention": { "enum": ["ephemeral", "session", "persistent_with_consent", "denied"] },
+        "training": { "type": "boolean" },
+        "export": { "type": "boolean" },
+        "bulk_access": { "type": "boolean" }
+      }
+    },
+    "actions": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": ["allow", "confirm", "strong_confirm", "human_only", "deny"]
+      }
+    },
+    "crawler_policy": {
+      "type": "object",
+      "properties": {
+        "inherits": { "type": "string" }
+      }
+    },
+    "training_policy": {
+      "type": "object",
+      "required": ["default"],
+      "properties": {
+        "default": { "enum": ["allow", "deny", "license_required"] }
+      }
+    }
+  }
+}

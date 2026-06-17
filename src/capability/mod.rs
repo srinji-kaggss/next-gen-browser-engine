@@ -39,9 +39,10 @@ impl Default for CapabilityBroker {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct WebCapability {
-    pub issuer: String,
-    pub subject: String,
+    pub issuer_did: Did,
+    pub subject_did: Did,
     pub scope: Vec<String>,
+    pub privacy_tier: PrivacyTier,
     pub attenuation: Attenuation,
     pub issued_at: String,
     pub expires_at: String,

@@ -1,4 +1,4 @@
-//! Traceability: AXIOM_CAPABILITY_BOUNDARY, AXIOM_CLOSED_ACTIONS.
+//! Traceability: AXIOM_CAPABILITY_BOUNDARY, AXIOM_CLOSED_ACTIONS, AXIOM_PRIVACY_TIER.
 use crate::browser_types::*;
 
 /// Unified compute lane for JS and Wasm under a single capability broker and tape.
