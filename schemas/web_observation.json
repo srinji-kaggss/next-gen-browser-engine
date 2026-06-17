@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://next-gen-browser-engine.ai/schemas/web_observation.json",
+  "title": "WebObservation",
+  "description": "A typed observation extracted from WebKit output and normalized into the canonical fabric.",
+  "type": "object",
+  "required": ["kind", "target_cid", "observed_at", "facts"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["load", "layout", "paint", "element", "network", "console", "a11y", "semantic"]
+    },
+    "target_cid": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "facts": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/fact" }
+    },
+    "raw_source": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "fact": {
+      "type": "object",
+      "required": ["predicate", "object"],
+      "properties": {
+        "predicate": { "type": "string" },
+        "object": { "type": "string" }
+      }
+    }
+  }
+}

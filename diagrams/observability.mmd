@@ -1,0 +1,41 @@
+flowchart TD
+    subgraph raw["Raw WebKit output"]
+        R1["layout / pixels / JS heap"]
+    end
+
+    subgraph bridge["Braid bridge"]
+        B1["normalize to typed observations"]
+        B2["hash + content-address"]
+    end
+
+    subgraph fabric["Canonical fact fabric"]
+        F1["Observation facts"]
+        F2["Action facts"]
+        F3["Capability facts"]
+        F4["Verdict facts"]
+        F5["Transition facts"]
+    end
+
+    subgraph lenses["Derived lenses"]
+        L1["DOM lens"]
+        L2["Accessibility lens"]
+        L3["Semantic graph lens"]
+        L4["Pixel lens"]
+        L5["OKF human lens"]
+    end
+
+    subgraph consumers["Consumers"]
+        C1["Policy broker"]
+        C2["State machine"]
+        C3["LLM planner"]
+        C4["Human UI shell"]
+        C5["Audit / replay"]
+    end
+
+    raw --> bridge
+    bridge --> fabric
+    fabric --> lenses
+    fabric --> consumers
+    lenses --> consumers
+
+    C5 --> fabric

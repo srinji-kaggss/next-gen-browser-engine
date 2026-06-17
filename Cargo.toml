@@ -1,0 +1,20 @@
+[package]
+name = "next-gen-browser-engine"
+version = "0.1.0"
+edition = "2021"
+authors = ["srinji-kaggss"]
+description = "AI-first deterministic web-cognition substrate"
+license = "MIT"
+
+[dependencies]
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+sha2 = { version = "0.10", default-features = false }
+
+[features]
+default = ["std"]
+std = []
+no_std = []
+
+[lib]
+name = "next_gen_browser_engine"
+path = "src/lib.rs"

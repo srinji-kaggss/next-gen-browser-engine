@@ -1,0 +1,80 @@
+graph TD
+    subgraph L0["L0 — Host Trust Membrane"]
+        L0_1[Process Launcher]
+        L0_2[Sandbox Broker DAL-A]
+        L0_3[Capability Registry DAL-A]
+        L0_4[Host Network Inheritance]
+        L0_5[Audit Tape Substrate DAL-A]
+    end
+
+    subgraph L1["L1 — Canonical Web Semantics"]
+        L1_1[URL / Origin Algebra DAL-A]
+        L1_2[Fetch Policy DAL-A]
+        L1_3[HTML Tokenizer + Tree Builder]
+        L1_4[DOM Core]
+        L1_5[CSS Parse + Cascade]
+        L1_6[Layout Engine]
+        L1_7[Paint + Raster]
+        L1_8[Compositor]
+    end
+
+    subgraph L2["L2 — Compute Lanes"]
+        L2_1[JS Embedding]
+        L2_2[Wasm Embedding]
+        L2_3[Symbolic Engine]
+        L2_4[Math Spine DAL-A]
+        L2_5[Embedding Sensor DAL-D]
+    end
+
+    subgraph L3["L3 — Event + Action System"]
+        L3_1[Event Dispatch]
+        L3_2[Closed Action Vocabulary DAL-A]
+        L3_3[Idempotency Fences DAL-A]
+        L3_4[Policy Broker DAL-A]
+    end
+
+    subgraph L4["L4 — Observability + Tape"]
+        L4_1[Observation Pipeline]
+        L4_2[Interaction Tape DAL-A]
+        L4_3[Provenance Graph]
+        L4_4[Replay Harness DAL-A]
+        L4_5[Telemetry Recorder]
+    end
+
+    subgraph L5["L5 — Derived Lenses"]
+        L5_1[Accessibility Tree]
+        L5_2[Agent Semantic Graph]
+        L5_3[Reader Mode]
+        L5_4[Human Visual Shell]
+        L5_5[Developer Lens]
+    end
+
+    subgraph L6["L6 — Verification"]
+        L6_1[WPT Integration]
+        L6_2[Parser Equivalence]
+        L6_3[Layout / Pixel Diffing]
+        L6_4[Security Fuzzers]
+        L6_5[Airworthiness Gate DAL-A]
+    end
+
+    Web[Untrusted Web] --> L0_4
+    L0_4 --> L1_3
+    L1_3 --> L1_4
+    L1_4 --> L4_1
+    L4_1 --> Braid[Braid-like Canonical Anchor]
+    Braid --> L3_4
+    L3_4 --> L3_2
+    L3_2 --> L0_1
+    L0_1 --> L2_1
+    L0_1 --> L2_2
+    L2_1 --> L2_4
+    L2_2 --> L2_4
+    L2_4 --> L3_4
+    L3_4 --> L4_2
+    L4_2 --> L4_4
+    Braid --> L5_2
+    L1_4 --> L5_1
+    L1_8 --> L5_4
+    L4_2 --> L5_5
+    L6_5 -.-> L3_4
+    L6_5 -.-> L4_2
