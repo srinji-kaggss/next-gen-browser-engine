@@ -39,6 +39,12 @@ until Braid accepts them:
 - `web.cap.compute { budget }`
 - `web.cap.egress { budget, audited }`
 
+### AIP protocol terms
+- `web.obs.aip_state { surface, state, affordances, memory, risk, bindings }`
+- `web.obs.aip_policy { version, site, observation_rules, action_rules, training_policy }`
+- `web.act.aip_action { id, kind, risk, preconditions, postconditions, binding_cid }`
+- `web.cap.aip_delegation { issuer_did, holder_did, audience, scope, privacy_tier, ttl }`
+
 ### Transition terms
 - `web.tx { parent_cid, action_cid, policy_cid, observation_cid, outcome_cid }`
 

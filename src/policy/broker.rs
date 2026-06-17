@@ -34,6 +34,7 @@ pub struct WebAction {
     pub verb: ActionVerb,
     pub target_cid: Cid,
     pub capability: String,
+    pub risk: Risk,
     pub parameters: Vec<u8>,
     pub effect_signature: Vec<String>,
 }

@@ -165,6 +165,11 @@ L5.4 Human Visual Shell
 L5.5 Developer Lens
      Point-to-CID, provenance trace, action preview, replay.
      DAL: B
+
+L5.6 AIP Protocol Bridge
+     Ingests `/.well-known/agent-policy.json`, `/agent/state`, `/agent/actions`,
+     and ASHP HTML attributes; projects them into Braid canonical terms.
+     DAL: B
 ```
 
 ## Layer 6 — Verification

@@ -48,6 +48,8 @@ Our devtools are **audit-first**:
 | **Diff Two Sessions** | Compare tape CIDs structurally | Catching regressions |
 | **Policy Rationale** | Explain why an action was admitted/denied | Teaching the model |
 | **Capability Ledger** | Show every grant exercised | Surfacing over-privilege |
+| **Privacy Diff** | Show what each model tier sees | Preventing accidental cloud leaks |
+| **Trust Class Inspector** | Color facts by trust boundary | Stopping prompt-injection drift |
 
 The default debugging surface is the canonical anchor, not the DOM.
 

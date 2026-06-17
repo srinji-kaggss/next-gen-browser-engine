@@ -120,7 +120,21 @@ A side effect is hidden if it does not produce a fact. The CI gate
 component cannot produce a fact for an effect, the effect is unrepresentable
 and therefore forbidden.
 
-## 7. Telemetry vs. Tape
+## 7. AIP / LLM Devtools Panels
+
+The developer lens renders panels over the canonical fact fabric:
+
+| Panel | Purpose |
+|---|---|
+| **Agent State** | Compact symbolic state exposed to the model. |
+| **Action Graph** | Valid affordances, pre/postconditions, risk, confirmation. |
+| **Model Context** | `raw state → redacted state → prompt projection → token count`. |
+| **Privacy Diff** | Compare `local_full`, `cloud_redacted`, `cloud_selective_reveal`, `cloud_full_context_explicit`. |
+| **Policy Trace** | Why an action was allowed/confirmed/denied. |
+| **Prompt-Injection Inspector** | Trust-class labeling and blocked instruction-like content. |
+| **Small-Model Test** | Validate that a 2B model can choose from `|valid actions| <= 12`. |
+
+## 8. Telemetry vs. Tape
 
 Telemetry is not a separate stream. Human interaction trajectories are recorded
 as `UserInput` facts on the tape, paired with the current canonical snapshot.

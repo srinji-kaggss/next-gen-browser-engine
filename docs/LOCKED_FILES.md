@@ -15,10 +15,15 @@ These files define the foundational seam of the web-cognition substrate. They ar
 - `docs/HUMAN_LENS_DEFERRAL.md` — human UI as Phase-2+ lens.
 - `docs/BRAID_BRIDGE.md` — browser-to-Braid IR requirements.
 - `docs/ANTIVIRUS_BROWSER.md` — browser-as-antivirus doctrine.
+- `docs/AIP_INTEGRATION.md` — AIP findings and AX-Browser mapping.
 
 ## Schemas
 
 - `schemas/web_anchor.json`
+- `schemas/aip_policy.json`
+- `schemas/aip_state.json`
+- `schemas/aip_delegation.json`
+- `schemas/aip_privacy.json`
 - `schemas/web_action.json`
 - `schemas/web_observation.json`
 - `schemas/web_capability.json`
