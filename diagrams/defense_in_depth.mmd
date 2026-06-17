@@ -1,0 +1,45 @@
+flowchart TD
+    subgraph l1["Layer 1: Capability confinement"]
+        L1A["Capability broker DAL-A"]
+        L1B["Attenuation-only delegation"]
+        L1C["Unforgeable signed tokens"]
+    end
+
+    subgraph l2["Layer 2: Non-interference"]
+        L2A["Process isolation per origin"]
+        L2B["No ambient authority"]
+        L2C["Capability table per session"]
+    end
+
+    subgraph l3["Layer 3: Effect typing"]
+        L3A["Every action typed + bounded"]
+        L3B["Totality / no partial functions in broker"]
+        L3C["Effect graph validated before execute"]
+    end
+
+    subgraph l4["Layer 4: URL / origin policy"]
+        L4A["Deny-first scheme whitelist"]
+        L4B["Private-IP / file / localhost blocks"]
+        L4C["Subresource origin check"]
+    end
+
+    subgraph l5["Layer 5: Human confirm"]
+        L5A["Escalation gate for exfil / mutate"]
+        L5B["Just-in-time capability grants"]
+        L5C["Visual audit via PixelAnchor"]
+    end
+
+    subgraph l6["Layer 6: Re-check / replay"]
+        L6A["Manifest re-check against tape"]
+        L6B["Deterministic replay"]
+        L6C["Tamper-evident fact chain"]
+    end
+
+    attacker["bad actor / bad AI"] --> l1
+    l1 --> l2
+    l2 --> l3
+    l3 --> l4
+    l4 --> l5
+    l5 --> l6
+
+    l6 --> verdict["Verdict + tape record"]

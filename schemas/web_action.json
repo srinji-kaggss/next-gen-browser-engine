@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://next-gen-browser-engine.ai/schemas/web_action.json",
+  "title": "WebAction",
+  "description": "A closed-vocabulary action proposed or executed by the browser engine.",
+  "type": "object",
+  "required": ["verb", "target_cid", "capability", "parameters"],
+  "properties": {
+    "verb": {
+      "type": "string",
+      "enum": [
+        "web.navigate",
+        "web.observe",
+        "web.click",
+        "web.type",
+        "web.scroll",
+        "web.download",
+        "web.wait",
+        "web.execute_js",
+        "web.execute_wasm"
+      ]
+    },
+    "target_cid": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "capability": {
+      "type": "string"
+    },
+    "parameters": {
+      "type": "object"
+    },
+    "effect_signature": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

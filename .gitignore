@@ -4,3 +4,6 @@
 __pycache__/
 *.pyc
 .ci-runs/
+target/
+Cargo.lock
+

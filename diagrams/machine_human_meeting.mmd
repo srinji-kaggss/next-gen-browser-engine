@@ -1,0 +1,37 @@
+flowchart TD
+    subgraph screen["Human screen"]
+        P1[" pixels"]
+        P2["mouse pointer"]
+    end
+
+    subgraph pixel["PixelAnchor"]
+        A1["screen coordinates"]
+        A2["stable CID"]
+    end
+
+    subgraph braid["Braid canonical fabric"]
+        C1["/web/element/{cid}"]
+        C2["/web/action/{cid}"]
+        C3["/web/observation/{cid}"]
+        C4["/web/verdict/{cid}"]
+    end
+
+    subgraph audit["Audit surface"]
+        D1["point to pixel -> resolve CID"]
+        D2["show capability chain"]
+        D3["show provenance"]
+        D4["diff two sessions"]
+    end
+
+    P2 -->|points at| P1
+    P1 -->|reverse lookup| A1
+    A1 -->|bidirectional map| A2
+    A2 -->|resolves to| C1
+    C1 -->|provenance| C2
+    C1 -->|observed as| C3
+    C2 -->|controlled by| C4
+
+    braid --> audit
+    screen --> audit
+
+    user["new coder / AI"] --> audit

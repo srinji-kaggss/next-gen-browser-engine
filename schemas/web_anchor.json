@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://next-gen-browser-engine.ai/schemas/web_anchor.json",
+  "title": "WebAnchor",
+  "description": "A content-addressed anchor in the Braid fact fabric.",
+  "type": "object",
+  "required": ["cid", "term_family", "created_at", "provenance"],
+  "properties": {
+    "cid": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "term_family": {
+      "type": "string",
+      "enum": ["web.element", "web.observation", "web.action", "web.capability", "web.verdict", "web.transition"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["source", "input_cids"],
+      "properties": {
+        "source": { "type": "string" },
+        "input_cids": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "payload": {
+      "type": "object"
+    }
+  }
+}
