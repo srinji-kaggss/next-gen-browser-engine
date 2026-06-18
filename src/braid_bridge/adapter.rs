@@ -75,6 +75,8 @@ impl Default for BraidAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
+    use alloc::string::ToString;
     use crate::observation::anchor::{Fact, ObservationAnchor, ObservationKind};
 
     #[test]

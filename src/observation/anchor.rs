@@ -190,6 +190,8 @@ fn parse_sensitivity_class(s: &str) -> Result<SensitivityClass, &'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
+    use alloc::string::ToString;
 
     fn sample_observation() -> ObservationAnchor {
         ObservationAnchor {

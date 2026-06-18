@@ -109,6 +109,9 @@ fn origin_from_cid(cid: &str) -> Origin {
 mod tests {
     use super::*;
     use crate::capability::Attenuation;
+    use alloc::vec;
+    use alloc::vec::Vec;
+    use alloc::string::ToString;
 
     fn cap(verbs: Vec<ActionVerb>, origins: Vec<&str>) -> WebCapability {
         WebCapability {
