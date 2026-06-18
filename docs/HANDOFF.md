@@ -4,7 +4,7 @@
 **Repo:** `srinji-kaggss/next-gen-browser-engine`  
 **Branch:** `foundation/aip-integration`  
 **Merged PR:** [#8](https://github.com/srinji-kaggss/next-gen-browser-engine/pull/8) — *feat: browser-engine ingestion + deterministic policy/state/URL seams* (8ca1ab3 on main).  
-**In-flight work:** Issues #3, #4, #5 implemented; awaiting review/PR.
+**In-flight PR:** [#10](https://github.com/srinji-kaggss/next-gen-browser-engine/pull/10) — *feat: braid observations, OKF lens, and reconciled governance (#3/#4/#5)*; verification now passes after no_std test fix.
 
 ## What just landed
 
@@ -70,12 +70,13 @@ Mode A is now locked: we are **not** rebuilding the renderer. We are building th
 ## Verification commands
 
 ```bash
-cargo test
+cargo test --all-features
 node ci/structural_airworthiness_gate.mjs --phase=all
-cargo check --features no_std --no-default-features
+cargo check --no-default-features --features no_std
+cargo clippy --all-features -- -D warnings
 ```
 
-Results: **32 tests OK, gate OK, no_std OK**.
+Results: **32 tests OK, gate OK, no_std OK, clippy clean**.
 
 ## Known limitations / debts
 
@@ -83,7 +84,7 @@ Results: **32 tests OK, gate OK, no_std OK**.
 - `compute/lane_manager.rs`, `audit/lens.rs`, `tape/fact_store.rs`, and `observation/pixel_anchor.rs` remain `todo!()` stubs. They should be filled once observations flow end-to-end through a real driver.
 - The ingestion pipeline workaround for `lgwks repo graph` only parsing `.py`/`.rs` is logged at `srinji-kaggss/logicalworks-#234`. Do not remove the custom `git grep` parsers until that issue is closed.
 - The research SQLite DBs are not in git; if regenerating them, use the same scripts and verify counts against `docs/BROWSER_ENGINE_UNDERSTANDINGS.json`.
-- Background embedding pass for Chromium/WebKit/Gecko is running via `browser_embedding_runner.py`. Progress is slow (~10 Chromium chunks in ~12 minutes) because the worker uses Qwen3-VL-Embedding-8B, a vision model ill-suited to text code chunks. Consider switching to a text-only embedding model for the text-code bulk and reserving Qwen3-VL for multimodal/screenshot chunks.
+- Background embedding pass is running via the temporary `browser_embedding_runner_octen_temp.py` using `Octen/Octen-Embedding-8B` on CPU. Current rate is ~32 Chromium chunks per ~12 minutes (~0.05 chunks/s). At this rate the full ~108 k remaining chunks would take ~28 days. A real batch of 32 code chunks on CPU saturated the 10-minute benchmark window. The bottleneck is the 8B parameter model, not MPS compilation. A smaller text embedding model (e.g. `sentence-transformers/all-MiniLM-L6-v2`, ~22M params, or `Alibaba-NLP/gte-base`) would finish in hours, not days. This temporary worker should be deleted once the pass is abandoned or completes.
 
 ## Final seams for the next agent
 
