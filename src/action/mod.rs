@@ -7,7 +7,7 @@ use alloc::vec::Vec;
 pub struct Action {
     pub verb: ActionVerb,
     pub target_cid: Cid,
-    pub capability: String,
+    pub capability_cid: Cid,
     pub risk: Risk,
     pub parameters: Vec<u8>,
     pub effect_signature: Vec<String>,

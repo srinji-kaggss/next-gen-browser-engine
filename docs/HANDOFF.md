@@ -2,9 +2,9 @@
 
 **Date:** 2026-06-18  
 **Repo:** `srinji-kaggss/next-gen-browser-engine`  
-**Branch status:** `foundation/aip-integration` is one commit ahead of `origin/main` (cabffdd).  
+**Branch:** `foundation/aip-integration`  
 **Merged PR:** [#8](https://github.com/srinji-kaggss/next-gen-browser-engine/pull/8) — *feat: browser-engine ingestion + deterministic policy/state/URL seams* (8ca1ab3 on main).  
-**Next open issues:** #3, #4, #5.
+**In-flight work:** Issues #3, #4, #5 implemented; awaiting review/PR.
 
 ## What just landed
 
@@ -30,47 +30,65 @@ Generated DBs (too large for git):
 ### 3. CI cleanup
 - Removed obsolete `ci/airworthiness-gate.mjs`; the structural gate is now the single source of truth. Closes #6.
 
+## In-flight implementation (issues #3 / #4 / #5)
+
+Mode A is now locked: we are **not** rebuilding the renderer. We are building the policy-gated, canonical-state agent layer that Chrome/WebKit do not provide. See `docs/MCP_RESEARCH.md` §6 for the full multimodal/native-understanding assessment and the Mode A decision log.
+
+### #3 — Refactor mac-eye bridge to emit Braid observations
+**Status:** Implemented.  
+**Seam:** `native/mac-eye/Sources/mac-eye/main.swift` emits typed JSONL observations; `src/platform/webkit_adapter.rs` parses them into `WebAnchor` facts.  
+**Final interface preserved:**
+- Swift emits one JSONL line per observation: `{"kind":"element","path":"body>div>a:0","facts":[["tag","a"],["text","Sign in"],["interactable","true"]]}`.
+- `WebKitAdapter::observe_from_jsonl(jsonl)` returns `Vec<WebAnchor>` with content-addressed CIDs.
+- No direct `evaluateJavaScript` injection authority in Swift; JS execution is requested as a closed action.
+
+**Deferred behind seam:**
+- Process spawning for `lgwks-mac-eye` is intentionally outside the core library (gate `SEC.forbidden.api` forbids `std::process`). The driver binary / test harness is responsible for invocation.
+- Real timestamp in `observed_at` and load/navigation completion signaling.
+
+### #4 — Refactor okf.py to derive from Braid anchor
+**Status:** Implemented.  
+**Seam:** `python/okf.py` consumes a JSON array of `WebObservation` records and renders OKF text.  
+**Final interface preserved:**
+- OKF is a derived human-readable lens; canonical IDs are 64-hex content-addressed CIDs.
+- Human references (`@eN`) are assigned by sorting interactable elements by CID, not by DOM walk order.
+- Layout bounds are facts, not identity.
+
+**Deferred behind seam:**
+- Python/Rust IPC format is JSON over stdin for now. A protobuf/CBOR wire format will be introduced once the FFI seam is hardened.
+
+### #5 — Reconcile docs/ADR.md and docs/SPEC.md
+**Status:** Reconciled.  
+**Seam:** governance documents now trace to `docs/AXIOMS.md` and `docs/DO178_PLAN.md`.  
+**Final interface preserved:**
+- `docs/ADR.md` — ADR-001 replaced with driver-agnostic engine; ADR-002/003/004 rewritten to reflect Braid canonical state, closed action vocabulary, and DAL assignments.
+- `docs/SPEC.md` — HLRs rewritten as canonical state, OKF lens, closed actions, policy membrane, deterministic state machine, supported subset, and driver-agnostic bridge. Each maps to a DAL and a Rust seam.
+
+**Deferred behind seam:**
+- Full LLR/verifier expansion for HLR-06 and HLR-07 awaits concrete parser and mock-driver tests.
+
 ## Verification commands
 
 ```bash
 cargo test
 node ci/structural_airworthiness_gate.mjs --phase=all
+cargo check --features no_std --no-default-features
 ```
 
-Both pass: **21 tests OK, gate OK**.
-
-## Final seams for the next agent
-
-The next work items are tracked and should be attacked in this order:
-
-### #6 — CLOSED
-Obsolete gate removed.
-
-### #3 — Refactor mac-eye bridge to emit Braid observations
-**Seam:** `native/mac-eye/Sources/mac-eye/main.swift` ↔ `src/observation/anchor.rs` / `src/braid_bridge/adapter.rs`.
-**Final interface the next agent should preserve:**
-- Swift bridge emits typed `WebObservation` facts (not raw JSON).
-- All JS execution is requested as an `Action` that receives a `Verdict` from the Rust policy broker before execution.
-- No direct `evaluateJavaScript` injection from Swift; the native side is a controlled I/O device, not a policy authority.
-**Deferred behind seam:** actual `WKWebView` navigation and script-evaluation implementation stays in `platform/webkit_adapter.rs`.
-
-### #4 — Refactor okf.py to derive from Braid anchor
-**Seam:** `python/okf.py` consumes `WebAnchor`/`BraidTerm` serialized from Rust, not raw DOM JSON.
-**Final interface the next agent should preserve:**
-- OKF is a human-readable derived lens; canonical IDs are content-addressed CIDs.
-- Remove layout-dependent `@eN` reference IDs from the canonical path; keep them only in the OKF rendering if needed for human interaction.
-**Deferred behind seam:** the actual Swift/Rust serialization format (JSONL over stdout or IPC) is a stub until #3 lands.
-
-### #5 — Reconcile docs/ADR.md and docs/SPEC.md
-**Seam:** governance documents must trace to `docs/AXIOMS.md` and `docs/DO178_PLAN.md`.
-**Final interface the next agent should preserve:**
-- Every ADR maps to one or more `AXIOM_*` constants.
-- Every HLR maps to a DAL assignment and a Rust seam / verifier.
-- No duplicate source-of-truth: archive or rewrite `ADR.md`/`SPEC.md` rather than leave them competing with `AXIOMS.md`/`DO178_PLAN.md`.
+Results: **32 tests OK, gate OK, no_std OK**.
 
 ## Known limitations / debts
 
-- `CapabilityBroker::issue` and `CapabilityBroker::attenuate` are still `todo!()` in `src/capability/mod.rs`. Policy broker tests build capabilities directly. The next agent should implement these only when a concrete signature scheme is chosen.
-- `platform/webkit_adapter.rs`, `compute/lane_manager.rs`, `audit/lens.rs`, `braid_bridge/adapter.rs`, `tape/fact_store.rs`, and `observation/pixel_anchor.rs` remain `todo!()` stubs. They should be filled in order: #3 (platform/observation/braid bridge), then #4 (okf lens), then audit/lane/tape can follow once observations flow.
+- `CapabilityBroker::issue` and `CapabilityBroker::attenuate` are still `todo!()` in `src/capability/mod.rs`. Policy broker tests build capabilities directly. Implement these only when a concrete signature scheme is chosen.
+- `compute/lane_manager.rs`, `audit/lens.rs`, `tape/fact_store.rs`, and `observation/pixel_anchor.rs` remain `todo!()` stubs. They should be filled once observations flow end-to-end through a real driver.
 - The ingestion pipeline workaround for `lgwks repo graph` only parsing `.py`/`.rs` is logged at `srinji-kaggss/logicalworks-#234`. Do not remove the custom `git grep` parsers until that issue is closed.
-- The research SQLite DBs are not in git; if the next agent regenerates them, use the same scripts and verify counts against `docs/BROWSER_ENGINE_UNDERSTANDINGS.json`.
+- The research SQLite DBs are not in git; if regenerating them, use the same scripts and verify counts against `docs/BROWSER_ENGINE_UNDERSTANDINGS.json`.
+- Background embedding pass for Chromium/WebKit/Gecko is running via `browser_embedding_runner.py`. Progress is slow (~10 Chromium chunks in ~12 minutes) because the worker uses Qwen3-VL-Embedding-8B, a vision model ill-suited to text code chunks. Consider switching to a text-only embedding model for the text-code bulk and reserving Qwen3-VL for multimodal/screenshot chunks.
+
+## Final seams for the next agent
+
+1. **Chrome/CDP driver** — implement `platform/chrome_adapter.rs` using the same `observe_from_jsonl` shape. This becomes the default driver; mac-eye is the mac-native alternate.
+2. **Policy-to-observation wiring** — route `WebKitAdapter::execute_js` through `PolicyBroker` and emit an execution trace observation.
+3. **Tape append** — implement `tape/fact_store.rs` so every observation and action appends a `TapeRecord`.
+4. **Pixel anchor** — implement `observation/pixel_anchor.rs` to bind screenshot regions to element CIDs.
+5. **Embedding model swap** — evaluate a text-only model for code chunks; keep Qwen3-VL for visual chunks only.

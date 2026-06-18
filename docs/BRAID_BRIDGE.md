@@ -62,20 +62,22 @@ BLAKE3 over the canonical bytes. The same fact always hashes to the same CID.
 - **Network lenses** reference a logical resource CID and add timing, cache
   state.
 
-## 5. Adapter Components
+## 5. Adapter Components (implemented status)
 
 `src/braid_bridge/` contains:
 
-| File | Purpose |
-|---|---|
-| `term.rs` | Braid term constructors, versioning, CID scheme |
-| `observation.rs` | Convert DOM/AX/network to observation terms |
-| `action.rs` | Convert action vocabulary to action terms |
-| `capability.rs` | Convert capability sets to capability terms |
-| `transition.rs` | Build tape transition terms |
-| `adapter.rs` | WebKit/AX → Braid term graph |
-| `executor.rs` | Braid action term → WebKit/AX execution |
-| `codec.rs` | Canonical serialization |
+| File | Purpose | Status |
+|---|---|---|
+| `term.rs` | Braid term constructors, versioning | Implemented: `BraidTerm` enum and `WebObservation`/`WebActionTerm`/`WebCapabilityTerm`/`WebVerdict` structs. |
+| `adapter.rs` | `WebAnchor` ↔ Braid IR | Implemented: `BraidAdapter::to_braid` maps `TermFamily::Observation` to `BraidTerm::Observation`. Other families are stubs. |
+| `observation.rs` | Convert DOM/AX to observation terms | Deferred; `src/observation/anchor.rs` owns the canonical observation fact seam. |
+| `action.rs` | Convert action vocabulary to action terms | Deferred; `src/action/mod.rs` owns the closed `Action` seam. |
+| `capability.rs` | Convert capability sets to capability terms | Deferred; `src/capability/mod.rs` owns capability facts. |
+| `transition.rs` | Build tape transition terms | Deferred; `src/tape/fact_store.rs` is a stub. |
+| `executor.rs` | Braid action term → WebKit/AX execution | Deferred. |
+| `codec.rs` | Canonical serialization | Partial: `ObservationAnchor::canonical_bytes` defines a deterministic no_std format; target CBOR/protobuf seam in `proto/browser_state.proto`. |
+
+Current canonical CID uses SHA-256 (64 hex digits). Target hash function is BLAKE3; the `Cid = String` interface is final.
 
 ## 6. Dependency Boundary
 

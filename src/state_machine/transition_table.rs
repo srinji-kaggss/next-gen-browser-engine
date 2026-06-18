@@ -85,7 +85,7 @@ mod tests {
         Action {
             verb,
             target_cid: "origin:example.com".to_string(),
-            capability: "cap-1".to_string(),
+            capability_cid: "cap-1".to_string(),
             risk,
             parameters: Vec::new(),
             effect_signature: Vec::new(),
