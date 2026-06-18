@@ -4,7 +4,8 @@
 **Repo:** `srinji-kaggss/next-gen-browser-engine`  
 **Branch:** `foundation/aip-integration`  
 **Merged PR:** [#8](https://github.com/srinji-kaggss/next-gen-browser-engine/pull/8) — *feat: browser-engine ingestion + deterministic policy/state/URL seams* (8ca1ab3 on main).  
-**In-flight PR:** [#10](https://github.com/srinji-kaggss/next-gen-browser-engine/pull/10) — *feat: braid observations, OKF lens, and reconciled governance (#3/#4/#5)*; verification now passes after no_std test fix.
+**In-flight PR:** [#10](https://github.com/srinji-kaggss/next-gen-browser-engine/pull/10) — *feat: braid observations, OKF lens, and reconciled governance (#3/#4/#5)*; verification now passes after no_std test fix.  
+**Cutoff note:** Session interrupted while OpenRouter embedding pass was running. State captured below.
 
 ## What just landed
 
@@ -84,7 +85,13 @@ Results: **32 tests OK, gate OK, no_std OK, clippy clean**.
 - `compute/lane_manager.rs`, `audit/lens.rs`, `tape/fact_store.rs`, and `observation/pixel_anchor.rs` remain `todo!()` stubs. They should be filled once observations flow end-to-end through a real driver.
 - The ingestion pipeline workaround for `lgwks repo graph` only parsing `.py`/`.rs` is logged at `srinji-kaggss/logicalworks-#234`. Do not remove the custom `git grep` parsers until that issue is closed.
 - The research SQLite DBs are not in git; if regenerating them, use the same scripts and verify counts against `docs/BROWSER_ENGINE_UNDERSTANDINGS.json`.
-- Background embedding pass was stopped after the temporary `Octen/Octen-Embedding-8B` runner proved too slow. It produced 352 Chromium embeddings, then a single batch of 32 real code chunks saturated the 10-minute benchmark window. The bottleneck is the 8B parameter model, not MPS compilation. A smaller text embedding model (e.g. `sentence-transformers/all-MiniLM-L6-v2`, ~22M params, or `Alibaba-NLP/gte-base`) would finish in hours, not days. Decision tracked in #12; temporary files should be removed once a replacement is chosen.
+- Background embedding pass was stopped after the temporary `Octen/Octen-Embedding-8B` runner proved too slow. It produced 352 Chromium embeddings, then a single batch of 32 real code chunks saturated the 10-minute benchmark window. The bottleneck is the 8B parameter model, not MPS compilation. Decision tracked in #12.
+- **OpenRouter pass in progress** (started ~2026-06-18 07:58 UTC). A temporary 24-hour OpenRouter key was added to `/Users/srinji/.hermes/.env` and the temporary runner `/Users/srinji/ingestion_results/scripts/browser_embedding_runner_openrouter_temp.py` is calling `qwen/qwen3-embedding-8b` via OpenRouter's `/api/v1/embeddings` endpoint. Rate observed: ~64 Chromium chunks per minute (batch size 64). The runner processes Chromium, then WebKit, then Gecko sequentially. Key expires ~2026-06-19 07:58 UTC and must be removed from `.env` then. Temporary runner file should also be deleted once the pass completes or the key expires.
+- **Current counts at cutoff**:
+  - Chromium: 576 `qwen/qwen3-embedding-8b` + 142 `Qwen/Qwen3-VL-Embedding-8B` + 352 `Octen/Octen-Embedding-8B`.
+  - WebKit: 0 embeddings.
+  - Gecko: 0 embeddings.
+- **Process**: PID 44183 running `browser_embedding_runner_openrouter_temp.py`. Log: `/Users/srinji/ingestion_results/browser_embeddings.log`. Lock: `/Users/srinji/ingestion_results/browser_embeddings_openrouter.lock`.
 
 ## Final seams for the next agent
 
