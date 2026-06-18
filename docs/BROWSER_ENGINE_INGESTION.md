@@ -18,12 +18,36 @@ covers the repo's languages (currently `.py` and `.rs` only).
 Built and verified locally:
 
 | Engine | Path | Documents | Chunks | Nodes | Edges |
-|---|---|---|---:|---:|---:|
+|---|---|---:|---:|---:|---:|---:|
 | Chromium | `/Users/srinji/ingestion_results/chromium_lgwks_db/research.sqlite` | 519 053 | 46 212 | 572 717 | 1 661 885 |
 | WebKit | `/Users/srinji/ingestion_results/webkit_lgwks_db/research.sqlite` | 456 079 | 27 059 | 564 715 | 602 314 |
 | Gecko | `/Users/srinji/ingestion_results/gecko_lgwks_db/research.sqlite` | 387 841 | 35 326 | 429 722 | 466 799 |
 
 The DBs are too large for git; only the scripts and this README are committed.
+
+## Quick reference
+
+| What | SQLite query |
+|---|---|
+| Tables and counts | `SELECT 'documents', COUNT(*) FROM documents UNION ALL SELECT 'chunks', COUNT(*) FROM chunks UNION ALL SELECT 'nodes', COUNT(*) FROM nodes UNION ALL SELECT 'edges', COUNT(*) FROM edges;` |
+| Node / edge kinds | `SELECT kind, COUNT(*) FROM nodes GROUP BY kind;` / `SELECT kind, COUNT(*) FROM edges GROUP BY kind;` |
+| Files under a top dir | `SELECT title FROM documents WHERE title LIKE 'content/%' ORDER BY title LIMIT 20;` |
+| Most included files | `SELECT substr(e.to_id, 6), COUNT(*) FROM edges e WHERE e.kind = 'includes' GROUP BY e.to_id ORDER BY 2 DESC LIMIT 20;` |
+| Includes from a file | `SELECT substr(e.to_id, 6), json_extract(e.metadata_json, '$.line') FROM edges e WHERE e.kind = 'includes' AND e.from_id = 'file:chrome/browser/ui/browser.cc' ORDER BY 2;` |
+| Symbols in a header | `SELECT n.label, json_extract(n.metadata_json, '$.source_location') FROM edges e JOIN nodes n ON n.id = e.to_id WHERE e.from_id = 'file:base/logging.h' AND e.kind = 'defines' ORDER BY 2;` |
+| Neighbors of a file | `SELECT e.kind, substr(CASE WHEN e.from_id = 'file:PATH' THEN e.to_id ELSE e.from_id END, 6) FROM edges e WHERE e.from_id = 'file:PATH' OR e.to_id = 'file:PATH' ORDER BY 1, 2 LIMIT 50;` |
+| Full text of a file | `SELECT GROUP_CONCAT(c.text, CHAR(10)) FROM documents d JOIN chunks c ON c.document_id = d.id WHERE d.title = 'PATH';` |
+
+Replace `content/` with `Source/WebCore/`, `dom/`, `widget/`, etc., and replace `PATH` with the repo-relative file path.
+
+## Aggregate understandings
+
+Structured counts per engine are in `docs/BROWSER_ENGINE_UNDERSTANDINGS.json`.
+Highlights:
+
+- **Chromium** is the largest by edges (~1.66M), driven by a dense C++ include graph. Dominant roots: `third_party/`, `chrome/`, `components/`. Top include targets are core `base/` primitives (`raw_ptr.h`, `bind.h`, `time.h`).
+- **WebKit** has the richest symbol surface (~86K `class/struct/namespace` symbols) but a sparser include graph than Chromium. Roots are dominated by `LayoutTests/`, `Source/`, `JSTests/`.
+- **Gecko** is the smallest of the three, with roots `testing/`, `mobile/`, `third_party/`, `js/`, `browser/`, `dom/`. It carries a small GN import footprint (25 edges) from shared build tooling.
 
 ## Run from scratch
 
@@ -71,118 +95,6 @@ python3 scripts/repo_to_lgwks_db.py chromium \
 ```
 
 Output: `/tmp/ingest-work/lgwks_db/research.sqlite`
-
-## Querying the DB
-
-Open any generated DB:
-
-```bash
-sqlite3 /Users/srinji/ingestion_results/chromium_lgwks_db/research.sqlite
-```
-
-### List tables and counts
-
-```sql
-SELECT 'documents' AS table_name, COUNT(*) FROM documents
-UNION ALL SELECT 'chunks', COUNT(*) FROM chunks
-UNION ALL SELECT 'nodes', COUNT(*) FROM nodes
-UNION ALL SELECT 'edges', COUNT(*) FROM edges;
-```
-
-### Node kinds and edge kinds
-
-```sql
-SELECT kind, COUNT(*) FROM nodes GROUP BY kind ORDER BY 2 DESC;
-SELECT kind, COUNT(*) FROM edges GROUP BY kind ORDER BY 2 DESC;
-```
-
-### Files under a top-level directory
-
-```sql
-SELECT title FROM documents
-WHERE title LIKE 'content/%'
-ORDER BY title
-LIMIT 20;
-```
-
-Replace `content/` with `Source/WebCore/`, `dom/`, `widget/`, etc.
-
-### Most included files
-
-```sql
-SELECT substr(e.to_id, 6) AS path, COUNT(*) AS in_degree
-FROM edges e
-WHERE e.kind = 'includes'
-GROUP BY e.to_id
-ORDER BY in_degree DESC
-LIMIT 20;
-```
-
-### Files a given file depends on
-
-```sql
-SELECT substr(e.to_id, 6) AS included_path, json_extract(e.metadata_json, '$.line') AS line
-FROM edges e
-WHERE e.kind = 'includes'
-  AND e.from_id = 'file:chrome/browser/ui/browser.cc'
-ORDER BY line;
-```
-
-### Symbols defined in a header
-
-```sql
-SELECT n.label, json_extract(n.metadata_json, '$.source_location') AS loc
-FROM edges e
-JOIN nodes n ON n.id = e.to_id
-WHERE e.from_id = 'file:base/logging.h'
-  AND e.kind = 'defines'
-ORDER BY loc;
-```
-
-### Neighbors of a file (any edge kind)
-
-```sql
-SELECT e.kind, substr(CASE WHEN e.from_id = 'file:chrome/browser/ui/browser.cc' THEN e.to_id ELSE e.from_id END, 6) AS neighbor
-FROM edges e
-WHERE e.from_id = 'file:chrome/browser/ui/browser.cc'
-   OR e.to_id   = 'file:chrome/browser/ui/browser.cc'
-ORDER BY e.kind, neighbor
-LIMIT 50;
-```
-
-### Full text of a file
-
-```sql
-SELECT d.title, GROUP_CONCAT(c.text, CHAR(10)) AS content
-FROM documents d
-JOIN chunks c ON c.document_id = d.id
-WHERE d.title = 'chrome/browser/ui/browser.cc'
-GROUP BY d.id;
-```
-
-### Directory containment tree
-
-```sql
-SELECT substr(parent.label, 5) AS parent_dir,
-       substr(child.label, 5) AS child_dir
-FROM edges e
-JOIN nodes parent ON parent.id = e.source
-JOIN nodes child  ON child.id  = e.target
-WHERE e.kind = 'contains'
-  AND parent.label = 'dir:'
-  AND child.kind = 'dir'
-ORDER BY parent_dir, child_dir
-LIMIT 30;
-```
-
-### Search file names
-
-```sql
-SELECT title FROM documents
-WHERE title LIKE '%render_widget%'
-ORDER BY title
-LIMIT 20;
-```
 
 ## Schema notes
 
