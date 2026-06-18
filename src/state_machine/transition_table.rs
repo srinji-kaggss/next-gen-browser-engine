@@ -1,5 +1,5 @@
 //! Traceability: AXIOM_DETERMINISTIC_QUIESCENCE, AXIOM_POLICY_AUTHORITY.
-use crate::{browser_types::*, policy::WebAction};
+use crate::{action::Action, browser_types::*};
 
 /// Deterministic state-machine transition table.
 pub struct TransitionTable;
@@ -13,7 +13,7 @@ impl TransitionTable {
     pub fn transition(
         &self,
         _state: BrowserState,
-        _action: &WebAction,
+        _action: &Action,
         _verdict: Verdict,
     ) -> BrowserState {
         todo!("state machine transition")
