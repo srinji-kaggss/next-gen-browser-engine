@@ -84,11 +84,11 @@ Results: **32 tests OK, gate OK, no_std OK, clippy clean**.
 - `compute/lane_manager.rs`, `audit/lens.rs`, `tape/fact_store.rs`, and `observation/pixel_anchor.rs` remain `todo!()` stubs. They should be filled once observations flow end-to-end through a real driver.
 - The ingestion pipeline workaround for `lgwks repo graph` only parsing `.py`/`.rs` is logged at `srinji-kaggss/logicalworks-#234`. Do not remove the custom `git grep` parsers until that issue is closed.
 - The research SQLite DBs are not in git; if regenerating them, use the same scripts and verify counts against `docs/BROWSER_ENGINE_UNDERSTANDINGS.json`.
-- Background embedding pass is running via the temporary `browser_embedding_runner_octen_temp.py` using `Octen/Octen-Embedding-8B` on CPU. Current rate is ~32 Chromium chunks per ~12 minutes (~0.05 chunks/s). At this rate the full ~108 k remaining chunks would take ~28 days. A real batch of 32 code chunks on CPU saturated the 10-minute benchmark window. The bottleneck is the 8B parameter model, not MPS compilation. A smaller text embedding model (e.g. `sentence-transformers/all-MiniLM-L6-v2`, ~22M params, or `Alibaba-NLP/gte-base`) would finish in hours, not days. This temporary worker should be deleted once the pass is abandoned or completes.
+- Background embedding pass was stopped after the temporary `Octen/Octen-Embedding-8B` runner proved too slow. It produced 352 Chromium embeddings, then a single batch of 32 real code chunks saturated the 10-minute benchmark window. The bottleneck is the 8B parameter model, not MPS compilation. A smaller text embedding model (e.g. `sentence-transformers/all-MiniLM-L6-v2`, ~22M params, or `Alibaba-NLP/gte-base`) would finish in hours, not days. Decision tracked in #12; temporary files should be removed once a replacement is chosen.
 
 ## Final seams for the next agent
 
-1. **Chrome/CDP driver** — implement `platform/chrome_adapter.rs` using the same `observe_from_jsonl` shape. This becomes the default driver; mac-eye is the mac-native alternate.
+1. **Chrome/CDP driver** — `platform/chrome_adapter.rs` is implemented in PR #11; merge it and then build the real CDP driver binary that emits the JSONL shape. This becomes the default driver; mac-eye is the mac-native alternate.
 2. **Policy-to-observation wiring** — route `WebKitAdapter::execute_js` through `PolicyBroker` and emit an execution trace observation.
 3. **Tape append** — implement `tape/fact_store.rs` so every observation and action appends a `TapeRecord`.
 4. **Pixel anchor** — implement `observation/pixel_anchor.rs` to bind screenshot regions to element CIDs.
