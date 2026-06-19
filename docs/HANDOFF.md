@@ -86,12 +86,12 @@ Results: **32 tests OK, gate OK, no_std OK, clippy clean**.
 - The ingestion pipeline workaround for `lgwks repo graph` only parsing `.py`/`.rs` is logged at `srinji-kaggss/logicalworks-#234`. Do not remove the custom `git grep` parsers until that issue is closed.
 - The research SQLite DBs are not in git; if regenerating them, use the same scripts and verify counts against `docs/BROWSER_ENGINE_UNDERSTANDINGS.json`.
 - Background embedding pass was stopped after the temporary `Octen/Octen-Embedding-8B` runner proved too slow. It produced 352 Chromium embeddings, then a single batch of 32 real code chunks saturated the 10-minute benchmark window. The bottleneck is the 8B parameter model, not MPS compilation. Decision tracked in #12.
-- **OpenRouter pass active** (restarted ~2026-06-18 22:21 UTC). A temporary 24-hour OpenRouter key is in `/Users/srinji/.hermes/.env` and the temporary runner `/Users/srinji/ingestion_results/scripts/browser_embedding_runner_openrouter_temp.py` is calling `qwen/qwen3-embedding-8b` via OpenRouter's `/api/v1/embeddings` endpoint. Rate observed after restart: ~256 Chromium chunks per minute (batch size 64). The runner processes Chromium, then WebKit, then Gecko sequentially. Key expires ~2026-06-19 07:58 UTC and must be removed from `.env` then. Temporary runner file should also be deleted once the pass completes or the key expires.
+- **OpenRouter pass active** (restarted concurrent ~2026-06-18 23:01 UTC). A temporary 24-hour OpenRouter key is in `/Users/srinji/.hermes/.env` and the temporary runner `/Users/srinji/ingestion_results/scripts/browser_embedding_runner_openrouter_temp.py` is calling `qwen/qwen3-embedding-8b` via OpenRouter's `/api/v1/embeddings` endpoint. Concurrency is capped at one batch per browser (max 3 concurrent OpenRouter calls) to respect rate limits. Rate observed after concurrent restart: ~192 total chunks per minute across all browsers (batch size 64 × 3 browsers). Key expires ~2026-06-19 07:58 UTC and must be removed from `.env` then. Temporary runner file should also be deleted once the pass completes or the key expires.
 - **Current counts**:
-  - Chromium: 1920 `qwen/qwen3-embedding-8b` + 170 `Qwen/Qwen3-VL-Embedding-8B` + 352 `Octen/Octen-Embedding-8B`.
-  - WebKit: 0 embeddings.
-  - Gecko: 0 embeddings.
-- **Process**: PID 48237 running `browser_embedding_runner_openrouter_temp.py`. Log: `/Users/srinji/ingestion_results/browser_embeddings.log`. Lock: `/Users/srinji/ingestion_results/browser_embeddings_openrouter.lock`.
+  - Chromium: 7360 `qwen/qwen3-embedding-8b` + 170 `Qwen/Qwen3-VL-Embedding-8B` + 352 `Octen/Octen-Embedding-8B`.
+  - WebKit: 64 `qwen/qwen3-embedding-8b`.
+  - Gecko: 64 `qwen/qwen3-embedding-8b`.
+- **Process**: PID 57445 running `browser_embedding_runner_openrouter_temp.py`. Log: `/Users/srinji/ingestion_results/browser_embeddings.log`. Lock: `/Users/srinji/ingestion_results/browser_embeddings_openrouter.lock`.
 
 ## Final seams for the next agent
 
