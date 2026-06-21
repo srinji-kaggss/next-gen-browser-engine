@@ -1,8 +1,26 @@
 //! Traceability: AXIOM_BRAID_CANONICAL, AXIOM_PRIVACY_TIER, AXIOM_DID_DELEGATION.
 use alloc::string::String;
 use alloc::vec::Vec;
+use sha2::{Digest, Sha256};
 
 pub type Cid = String;
+
+/// Compute a content-addressed CID as a 64-character lowercase hex SHA-256 digest.
+///
+/// Traceability: AXIOM_BRAID_CANONICAL.
+/// Note: this basement seam uses SHA-256 today; the target hash function is BLAKE3.
+/// The interface (`Cid` as a 64-hex content-address string) is final.
+const HEX_LOWER: [u8; 16] = *b"0123456789abcdef";
+
+pub fn cid_from_bytes(bytes: &[u8]) -> Cid {
+    let digest = Sha256::digest(bytes);
+    let mut hex = String::with_capacity(64);
+    for byte in digest.iter() {
+        hex.push(HEX_LOWER[(byte >> 4) as usize] as char);
+        hex.push(HEX_LOWER[(byte & 0x0f) as usize] as char);
+    }
+    hex
+}
 pub type Origin = String;
 pub type Url = String;
 pub type Did = String;
@@ -147,6 +165,27 @@ impl Risk {
             Risk::HumanOnly => "human_only",
             Risk::Denied => "denied",
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cid_is_deterministic_and_hex() {
+        let a = cid_from_bytes(b"hello");
+        let b = cid_from_bytes(b"hello");
+        assert_eq!(a, b);
+        assert_eq!(a.len(), 64);
+        assert!(a.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn cid_changes_with_content() {
+        let a = cid_from_bytes(b"hello");
+        let b = cid_from_bytes(b"world");
+        assert_ne!(a, b);
     }
 }
 

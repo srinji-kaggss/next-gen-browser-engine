@@ -80,12 +80,14 @@ pub enum BrowserState {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec::Vec;
+    use alloc::string::ToString;
 
     fn action(verb: ActionVerb, risk: Risk) -> Action {
         Action {
             verb,
             target_cid: "origin:example.com".to_string(),
-            capability: "cap-1".to_string(),
+            capability_cid: "cap-1".to_string(),
             risk,
             parameters: Vec::new(),
             effect_signature: Vec::new(),

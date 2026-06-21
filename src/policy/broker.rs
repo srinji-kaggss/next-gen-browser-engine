@@ -109,6 +109,9 @@ fn origin_from_cid(cid: &str) -> Origin {
 mod tests {
     use super::*;
     use crate::capability::Attenuation;
+    use alloc::vec;
+    use alloc::vec::Vec;
+    use alloc::string::ToString;
 
     fn cap(verbs: Vec<ActionVerb>, origins: Vec<&str>) -> WebCapability {
         WebCapability {
@@ -132,7 +135,7 @@ mod tests {
         Action {
             verb,
             target_cid: target.to_string(),
-            capability: "cap-1".to_string(),
+            capability_cid: "cap-1".to_string(),
             risk,
             parameters: Vec::new(),
             effect_signature: Vec::new(),

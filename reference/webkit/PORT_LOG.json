@@ -1,0 +1,74 @@
+[
+  {
+    "file": "Source/WebKit/UIProcess/API/Cocoa/WKWebView.h",
+    "source_url": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebKit/UIProcess/API/Cocoa/WKWebView.h",
+    "bytes": 43563,
+    "sha256": "78dd7d3f00c2c0dd26f451575a7de69125b79ce4b37775e19ae13230a78a5622",
+    "dest": "/Users/srinji/next-gen-browser-engine/.claude/worktrees/browser-foundations/reference/webkit/Source/WebKit/UIProcess/API/Cocoa/WKWebView.h",
+    "status": "ported"
+  },
+  {
+    "file": "Source/WebKit/UIProcess/API/Cocoa/WKWebView.mm",
+    "source_url": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebKit/UIProcess/API/Cocoa/WKWebView.mm",
+    "bytes": 315297,
+    "sha256": "c5421ab705012414239a2c43b0acf513dc9c274f04ee93d2646c565d049726ea",
+    "dest": "/Users/srinji/next-gen-browser-engine/.claude/worktrees/browser-foundations/reference/webkit/Source/WebKit/UIProcess/API/Cocoa/WKWebView.mm",
+    "status": "ported"
+  },
+  {
+    "file": "Source/WebKit/UIProcess/API/Cocoa/WKWebViewConfiguration.h",
+    "source_url": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebKit/UIProcess/API/Cocoa/WKWebViewConfiguration.h",
+    "bytes": 13814,
+    "sha256": "4dc956a13085b92ac2487588f90c026bfd7befaf0a41e1caee2a8420e808b95b",
+    "dest": "/Users/srinji/next-gen-browser-engine/.claude/worktrees/browser-foundations/reference/webkit/Source/WebKit/UIProcess/API/Cocoa/WKWebViewConfiguration.h",
+    "status": "ported"
+  },
+  {
+    "file": "Source/WebCore/accessibility/AXObjectCache.h",
+    "source_url": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebCore/accessibility/AXObjectCache.h",
+    "bytes": 52913,
+    "sha256": "373e34fc682beb5e07e61d16120a4b64eac146dcc4b5b93d95850fae5380fe34",
+    "dest": "/Users/srinji/next-gen-browser-engine/.claude/worktrees/browser-foundations/reference/webkit/Source/WebCore/accessibility/AXObjectCache.h",
+    "status": "ported"
+  },
+  {
+    "file": "Source/WebCore/accessibility/AccessibilityObject.h",
+    "source_url": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebCore/accessibility/AccessibilityObject.h",
+    "bytes": 52356,
+    "sha256": "efce205a5720eaf30693b812120ea989e2e42e604fa8ca868c81c32aa2780837",
+    "dest": "/Users/srinji/next-gen-browser-engine/.claude/worktrees/browser-foundations/reference/webkit/Source/WebCore/accessibility/AccessibilityObject.h",
+    "status": "ported"
+  },
+  {
+    "file": "Source/WebCore/page/Page.h",
+    "source_url": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebCore/page/Page.h",
+    "bytes": 81300,
+    "sha256": "ae756388c2e03a7001d97879f54424f39bb1854dcbe5f289529e845ca806eca0",
+    "dest": "/Users/srinji/next-gen-browser-engine/.claude/worktrees/browser-foundations/reference/webkit/Source/WebCore/page/Page.h",
+    "status": "ported"
+  },
+  {
+    "file": "Source/WebCore/page/Page.cpp",
+    "source_url": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebCore/page/Page.cpp",
+    "bytes": 215565,
+    "sha256": "eb1b0fba4bb945c18e9ea23df536fe2cfc11652bf2581238b0065362a055bec1",
+    "dest": "/Users/srinji/next-gen-browser-engine/.claude/worktrees/browser-foundations/reference/webkit/Source/WebCore/page/Page.cpp",
+    "status": "ported"
+  },
+  {
+    "file": "Source/WebKit/UIProcess/WebPageProxy.h",
+    "source_url": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebKit/UIProcess/WebPageProxy.h",
+    "bytes": 209889,
+    "sha256": "ab2c8642b9a89324dd8d7050401a9bb4a0de9579a037af734dac3616c19d85a7",
+    "dest": "/Users/srinji/next-gen-browser-engine/.claude/worktrees/browser-foundations/reference/webkit/Source/WebKit/UIProcess/WebPageProxy.h",
+    "status": "ported"
+  },
+  {
+    "file": "Source/WebKit/WebProcess/WebPage/WebPage.h",
+    "source_url": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebKit/WebProcess/WebPage/WebPage.h",
+    "bytes": 157842,
+    "sha256": "cb54d8065371726245cb4458136611820337d5511a63a15703e5a02fefc67775",
+    "dest": "/Users/srinji/next-gen-browser-engine/.claude/worktrees/browser-foundations/reference/webkit/Source/WebKit/WebProcess/WebPage/WebPage.h",
+    "status": "ported"
+  }
+]
