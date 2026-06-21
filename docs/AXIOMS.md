@@ -91,3 +91,24 @@ expired delegation is unrepresentable.
 For basic tasks the symbolic interface must expose a finite, typed action set
 small enough for a local 2B model to choose from. First target: `|valid actions|
 <= 12`.
+
+## A18 — Restricted Substrate Grammar (PROPOSED — ratify via ADR-005)
+The layer we write (the DAL-A substrate: canonical state, policy broker,
+capability, tape, state machine) obeys a Power-of-Ten-style restricted grammar:
+no *unbounded* runtime allocation (pre-sized arena/pool, fail-closed on
+exhaustion per A9), no recursion, no panics/unwrap, bounded loops, exhaustive
+matches on closed enums, `#![no_std]` + `#![forbid(unsafe_code)]`. The
+restriction is the verification mechanism: a constrained grammar shrinks the
+space for both the generator (AI) and the checker (human/gate), turning the
+oracle from a runtime judge into a compile-time gate. This applies ONLY to the
+written substrate; the brought-in engine muscle (renderer, JS, raster) is
+irreducibly dynamic and is **confined (A12), not grammar-restricted**. Brain:
+restricted. Muscle: caged. Vehicle: the existing `no_std` core in Cargo.toml.
+
+## Standalone-Browser Correction (2026-06-21)
+The browser is a **standalone, independently-running browser; the render is the
+visible fork** (ADR-001). It is NOT an agent substrate. Any LLM is a guest at the
+boundary, never the core runtime (ADR-007). A6/A12/A7 carry the defense model for
+the classic browser threat — malicious page content — independent of any AI. The
+A14 AIP / agent-facing surfaces remain available but are secondary lenses, not
+the product.

@@ -20,7 +20,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 CHUNK_SAMPLE_SIZE = 5000
-CHUNK_WORDS = 320
+CHUNK_SIZE_TOKENS = 512  # Azure / Firecrawl default starting point
+CHUNK_OVERLAP_TOKENS = 128  # ~25% overlap per Azure guidance; Firecrawl treats as tunable
+TOKENS_PER_CHAR = 0.25  # ~4 characters per token for code / technical English
+CHUNK_SIZE_CHARS = int(CHUNK_SIZE_TOKENS / TOKENS_PER_CHAR)  # ~2048 chars
+CHUNK_OVERLAP_CHARS = int(CHUNK_OVERLAP_TOKENS / TOKENS_PER_CHAR)  # ~512 chars
 
 GRAPH_PATH = Path()
 REPO_ROOT = Path()
@@ -49,12 +53,160 @@ def word_count(text: str) -> int:
     return len(re.findall(r"\b\w+\b", text))
 
 
-def chunk_text(text: str, chunk_words: int = CHUNK_WORDS) -> list[str]:
-    words = text.split()
-    chunks = []
-    for i in range(0, len(words), chunk_words):
-        chunks.append(" ".join(words[i : i + chunk_words]))
-    return chunks
+def _get_separators(path: str) -> list[str]:
+    """Return language-aware separator hierarchy, coarsest first."""
+    ext = Path(path).suffix.lower()
+
+    if ext == ".py":
+        return [
+            "\n\n",
+            "\nclass ",
+            "\ndef ",
+            "\nasync def ",
+            "\n    def ",
+            "\n    async def ",
+            "\n",
+            " ",
+        ]
+
+    if ext in {".c", ".cc", ".cpp", ".h", ".hpp", ".mm", ".m", ".java", ".swift", ".kt"}:
+        return [
+            "\n\n",
+            "\n};\n",
+            "\n}\n",
+            "\nnamespace ",
+            "\nclass ",
+            "\nstruct ",
+            "\ntemplate",
+            "\nvoid ",
+            "\nint ",
+            "\nbool ",
+            "\nstd::",
+            "\n",
+            " ",
+        ]
+
+    if ext in {".js", ".ts", ".jsx", ".tsx", ".go"}:
+        return [
+            "\n\n",
+            "\nfunction ",
+            "\nconst ",
+            "\nlet ",
+            "\nvar ",
+            "\nclass ",
+            "\nexport ",
+            "\nimport ",
+            "\n",
+            " ",
+        ]
+
+    if ext in {".md", ".markdown"}:
+        return ["\n\n# ", "\n\n## ", "\n\n### ", "\n\n", "\n", " "]
+
+    if ext in {".html", ".htm", ".xml", ".svg"}:
+        return ["\n\n", "<", "\n", " "]
+
+    if ext in {".json", ".yaml", ".yml"}:
+        return ["\n\n", "\n", " "]
+
+    # Generic text / unknown
+    return ["\n\n", "\n", " "]
+
+
+def _recursive_split(text: str, separators: list[str], chunk_size: int) -> list[str]:
+    """Recursively split text into chunks no larger than chunk_size.
+
+    Splits on the coarsest separator first and falls back to finer separators
+    for oversized pieces, preserving structural boundaries where possible.
+    """
+    if not text:
+        return []
+    if len(text) <= chunk_size:
+        return [text]
+    if not separators:
+        # No separators left: hard split and recurse on the remainder.
+        return [text[:chunk_size]] + _recursive_split(text[chunk_size:], [], chunk_size)
+
+    sep = separators[0]
+    parts = text.split(sep)
+    if len(parts) == 1:
+        # Separator not useful; try the next finer one.
+        return _recursive_split(text, separators[1:], chunk_size)
+
+    chunks: list[str] = []
+    current: list[str] = []
+    current_len = 0
+
+    for part in parts:
+        part_len = len(part) + (len(sep) if current else 0)
+        if current and current_len + part_len > chunk_size:
+            chunks.append(sep.join(current))
+            current = [part]
+            current_len = len(part)
+        else:
+            current_len += part_len if current else len(part)
+            current.append(part)
+
+    if current:
+        chunks.append(sep.join(current))
+
+    # Recurse on any chunk that is still too large.
+    result: list[str] = []
+    finer = separators[1:] if len(separators) > 1 else []
+    for chunk in chunks:
+        if len(chunk) > chunk_size:
+            result.extend(_recursive_split(chunk, finer, chunk_size))
+        else:
+            result.append(chunk)
+    return result
+
+
+def chunk_text(
+    text: str,
+    path: str,
+    chunk_size: int = CHUNK_SIZE_CHARS,
+    overlap: int = CHUNK_OVERLAP_CHARS,
+) -> list[str]:
+    """Chunk text for code-aware RAG embedding.
+
+    Strategy (hardened against Firecrawl + Azure chunking guidance):
+      * 512-token target chunks (~2048 chars, Azure starting default).
+      * 128-token overlap (~512 chars, ~25%, Azure recommendation).
+      * Recursive, language-aware splitting that respects structural boundaries.
+      * Each chunk prefixed with its source path so middle chunks retain context.
+    """
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    if not text.strip():
+        return []
+
+    separators = _get_separators(path)
+    # Base chunks are sized so that prefix + overlap + content fits the budget.
+    prefix = f"[{path}]\n"
+    base_budget = max(64, chunk_size - len(prefix) - overlap)
+    base_chunks = _recursive_split(text, separators, base_budget)
+
+    final_chunks: list[str] = []
+    prev_overlap = ""
+    for i, base in enumerate(base_chunks):
+        # Prepend the trailing overlap of the previous chunk to preserve continuity.
+        content = prev_overlap + base
+        final = prefix + content
+
+        # Hard safety trim in case a single structural unit still exceeds budget.
+        available = chunk_size - len(prefix)
+        if len(content) > available:
+            content = content[:available]
+            final = prefix + content
+
+        final_chunks.append(final)
+
+        # Compute overlap for the next chunk from this chunk's *content* (no prefix).
+        if overlap > 0 and i < len(base_chunks) - 1:
+            prev_overlap = content[-overlap:] if len(content) >= overlap else content
+        else:
+            prev_overlap = ""
+
+    return final_chunks
 
 
 def load_graph() -> dict:
@@ -344,7 +496,7 @@ def insert_chunks_for_sample(conn: sqlite3.Connection, graph: dict, doc_map: dic
             continue
         if not text.strip():
             continue
-        chunks = chunk_text(text, CHUNK_WORDS)
+        chunks = chunk_text(text, path)
         for pos, chunk in enumerate(chunks):
             chunk_id = f"{doc_id}-chunk-{pos}"
             chunk_rows.append(
