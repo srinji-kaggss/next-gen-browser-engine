@@ -1,0 +1,74 @@
+[workspace]
+members = [
+    "crates/be-parser",
+    "crates/be-dom",
+    "crates/be-a11y",
+    "crates/be-layout",
+    "crates/be-semantic",
+    "crates/be-pulse",
+    "crates/be-api",
+    "crates/be-taint",
+    "crates/be-lanes",
+    "crates/be-axiom",
+    "crates/be-braid",
+]
+resolver = "2"
+
+[workspace.dependencies]
+# === FROM LOGIC-OS-KERNEL (path deps) ===
+canvas-protocol = { path = "/Users/srinji/logic-os-kernel/kernel/crates/canvas-protocol" }
+canvas-syscall = { path = "/Users/srinji/logic-os-kernel/kernel/crates/canvas-syscall" }
+canvas-attest-verify = { path = "/Users/srinji/logic-os-kernel/kernel/crates/canvas-attest-verify" }
+tape-store = { path = "/Users/srinji/logic-os-kernel/kernel/crates/tape-store" }
+warden = { path = "/Users/srinji/logic-os-kernel/kernel/crates/warden" }
+
+# === FROM BRAID (path deps) ===
+braid-ir = { path = "/Users/srinji/Braid/crates/braid-ir" }
+braid-verify = { path = "/Users/srinji/Braid/crates/braid-verify" }
+braid-capability = { path = "/Users/srinji/Braid/crates/braid-capability" }
+
+# === FROM CRATES.IO ===
+html5ever = "0.39"
+markup5ever = "0.14"
+markup5ever_rcdom = "0.39"
+tendril = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+blake3 = "1.8"
+
+# === SYNCED FROM LOGIC-OS-KERNEL (same versions) ===
+strum = { version = "0.26.3", features = ["derive"] }
+strum_macros = "0.26.4"
+thiserror = "2.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[package]
+name = "browser-engine"
+version = "0.1.0"
+edition = "2021"
+description = "Browser engine with native AI surface and PULSE semantic API"
+
+[[bin]]
+name = "browser-engine"
+path = "src/main.rs"
+
+[[test]]
+name = "test_parse_and_query"
+path = "tests/integration/test_parse_and_query.rs"
+
+[dependencies]
+be-api = { path = "crates/be-api" }
+tokio = { workspace = true }
+axum = { workspace = true }
+
+[dev-dependencies]
+be-parser = { path = "crates/be-parser" }
+be-a11y = { path = "crates/be-a11y" }
+be-layout = { path = "crates/be-layout" }
+be-semantic = { path = "crates/be-semantic" }
+be-pulse = { path = "crates/be-pulse" }
+be-capability = { path = "crates/be-capability" }

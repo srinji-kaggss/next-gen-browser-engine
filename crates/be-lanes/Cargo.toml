@@ -1,0 +1,10 @@
+[package]
+name = "be-lanes"
+version = "0.1.0"
+edition = "2021"
+description = "Compression lanes — security-typed compression contexts. TODO: move to canvas-protocol when stable."
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+be-taint = { path = "../be-taint" }

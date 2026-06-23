@@ -1,0 +1,13 @@
+[package]
+name = "be-parser"
+version = "0.1.0"
+edition = "2021"
+description = "HTML parser. MVP: stub. Will integrate html5ever (Servo) in Step 2."
+
+[dependencies]
+thiserror = { workspace = true }
+be-dom = { path = "../be-dom" }
+html5ever = { workspace = true }
+markup5ever = { workspace = true }
+markup5ever_rcdom = { workspace = true }
+tendril = { workspace = true }

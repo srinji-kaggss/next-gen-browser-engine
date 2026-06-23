@@ -1,0 +1,10 @@
+[package]
+name = "be-capability"
+version = "0.1.0"
+edition = "2021"
+description = "Browser-specific capabilities. TODO: merge into canvas-protocol Capability enum."
+
+[dependencies]
+serde = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }

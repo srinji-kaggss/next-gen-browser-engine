@@ -1,0 +1,9 @@
+[package]
+name = "be-dom"
+version = "0.1.0"
+edition = "2021"
+description = "DOM tree implementation. The structural truth of a web page."
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }

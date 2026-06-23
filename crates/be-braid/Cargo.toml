@@ -1,0 +1,16 @@
+[package]
+name = "be-braid"
+version = "0.1.0"
+edition = "2021"
+description = "Braid adapter — bridges Braid IR substrate into the browser engine. Houses the web.* vocabulary."
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+be-capability = { path = "../be-capability" }
+braid-ir = { workspace = true }
+braid-capability = { workspace = true }
+braid-verify = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
