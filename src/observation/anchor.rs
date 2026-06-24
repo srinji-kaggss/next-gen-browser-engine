@@ -23,7 +23,7 @@ impl ObservationAnchor {
         let mut out = Vec::new();
         out.extend_from_slice(b"observation\n");
         write_field(&mut out, "kind", self.kind.as_str());
-        write_field(&mut out, "target_cid", &self.target_cid);
+        write_field(&mut out, "target_cid", &self.target_cid.to_hex());
         write_field(&mut out, "observed_at", &self.observed_at);
         write_field(&mut out, "privacy_tier", self.privacy_tier.as_str());
         write_field(&mut out, "trust_class", self.trust_class.as_str());
@@ -45,7 +45,7 @@ impl ObservationAnchor {
     /// Seal this observation as a content-addressed `WebAnchor`.
     pub fn to_anchor(&self, provenance: Provenance) -> WebAnchor {
         let payload = self.canonical_bytes();
-        let cid = cid_from_bytes(&payload);
+        let cid = Cid::compute(WEB_ANCHOR_DOMAIN, &payload);
         WebAnchor {
             cid,
             term_family: TermFamily::Observation,
@@ -123,7 +123,8 @@ pub fn observation_from_payload(payload: &[u8]) -> Result<ObservationAnchor, &'s
 
     Ok(ObservationAnchor {
         kind: kind.ok_or("missing kind")?,
-        target_cid: target_cid.ok_or("missing target_cid")?,
+        target_cid: Cid::from_hex(&target_cid.ok_or("missing target_cid")?)
+            .ok_or("invalid target_cid hex")?,
         observed_at: observed_at.ok_or("missing observed_at")?,
         facts,
         sensitivity: None,
@@ -196,7 +197,7 @@ mod tests {
     fn sample_observation() -> ObservationAnchor {
         ObservationAnchor {
             kind: ObservationKind::Element,
-            target_cid: "a1b2c3".to_string(),
+            target_cid: Cid::compute(WEB_ELEMENT_DOMAIN, b"a1b2c3"),
             observed_at: "2026-06-18T00:00:00Z".to_string(),
             facts: vec![
                 Fact {
@@ -234,7 +235,7 @@ mod tests {
             did_principal: None,
         });
         assert_eq!(anchor.term_family, TermFamily::Observation);
-        assert_eq!(anchor.cid.len(), 64);
+        assert_eq!(anchor.cid.to_hex().len(), 64);
         assert!(!anchor.payload.is_empty());
     }
 

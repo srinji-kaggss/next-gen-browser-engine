@@ -1,26 +1,16 @@
 //! Traceability: AXIOM_BRAID_CANONICAL, AXIOM_PRIVACY_TIER, AXIOM_DID_DELEGATION.
 use alloc::string::String;
 use alloc::vec::Vec;
-use sha2::{Digest, Sha256};
+/// The canonical content identifier IS Braid's domain-separated BLAKE3 CID
+/// (`braid_ir::Cid`) — the one scheme shared verbatim with logic-os. We do not
+/// declare a second CID. Hex is only the text-wire form (`to_hex`/`from_hex`).
+pub use braid_ir::Cid;
 
-pub type Cid = String;
-
-/// Compute a content-addressed CID as a 64-character lowercase hex SHA-256 digest.
-///
-/// Traceability: AXIOM_BRAID_CANONICAL.
-/// Note: this basement seam uses SHA-256 today; the target hash function is BLAKE3.
-/// The interface (`Cid` as a 64-hex content-address string) is final.
-const HEX_LOWER: [u8; 16] = *b"0123456789abcdef";
-
-pub fn cid_from_bytes(bytes: &[u8]) -> Cid {
-    let digest = Sha256::digest(bytes);
-    let mut hex = String::with_capacity(64);
-    for byte in digest.iter() {
-        hex.push(HEX_LOWER[(byte >> 4) as usize] as char);
-        hex.push(HEX_LOWER[(byte & 0x0f) as usize] as char);
-    }
-    hex
-}
+/// Domain for an observation fact's own content address (D8 separation — a
+/// Braid CID under one domain can never collide one under another).
+pub const WEB_ANCHOR_DOMAIN: &[u8] = b"lw.browser.anchor.v0";
+/// Domain for an element identity derived from its stable DOM path.
+pub const WEB_ELEMENT_DOMAIN: &[u8] = b"lw.browser.element.v0";
 pub type Origin = String;
 pub type Url = String;
 pub type Did = String;
@@ -173,19 +163,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn cid_is_deterministic_and_hex() {
-        let a = cid_from_bytes(b"hello");
-        let b = cid_from_bytes(b"hello");
-        assert_eq!(a, b);
-        assert_eq!(a.len(), 64);
-        assert!(a.chars().all(|c| c.is_ascii_hexdigit()));
-    }
-
-    #[test]
-    fn cid_changes_with_content() {
-        let a = cid_from_bytes(b"hello");
-        let b = cid_from_bytes(b"world");
-        assert_ne!(a, b);
+    fn domain_separation_distinguishes_anchor_and_element_cids() {
+        // The CID mechanics are Braid's (and tested there). What is OURS to
+        // prove is the domain choice: the same bytes under our two domains must
+        // never collide (D8), and the address is deterministic.
+        let anchor = Cid::compute(WEB_ANCHOR_DOMAIN, b"body>div>a:0");
+        let element = Cid::compute(WEB_ELEMENT_DOMAIN, b"body>div>a:0");
+        assert_ne!(anchor, element);
+        assert_eq!(anchor, Cid::compute(WEB_ANCHOR_DOMAIN, b"body>div>a:0"));
     }
 }
 

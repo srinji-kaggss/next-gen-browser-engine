@@ -20,13 +20,13 @@ impl FactStore {
     pub fn append(&mut self, anchor: &WebAnchor) -> Result<Cid, &'static str> {
         let entry = TapeEntry {
             index: self.entries.len(),
-            cid: anchor.cid.clone(),
+            cid: anchor.cid,
             term_family: anchor.term_family.as_str().into(),
             timestamp: anchor.created_at.clone(),
         };
         self.entries.push(entry);
-        self.head = Some(anchor.cid.clone());
-        Ok(anchor.cid.clone())
+        self.head = Some(anchor.cid);
+        Ok(anchor.cid)
     }
 
     pub fn verify_chain(&self) -> Result<(), &'static str> {

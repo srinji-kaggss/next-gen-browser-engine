@@ -7,6 +7,11 @@ use alloc::vec::Vec;
 pub struct Action {
     pub verb: ActionVerb,
     pub target_cid: Cid,
+    /// The target's origin — a first-class capability boundary (A3), carried
+    /// explicitly. It is NOT divined from `target_cid`: a content-address
+    /// commits to bytes, not to provenance. A full impl resolves it from an
+    /// origin fact; until then the producer supplies it.
+    pub origin: Origin,
     pub capability_cid: Cid,
     pub risk: Risk,
     pub parameters: Vec<u8>,
