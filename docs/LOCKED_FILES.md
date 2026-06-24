@@ -47,6 +47,7 @@ These files define the foundational seam of the web-cognition substrate. They ar
 - `src/state_machine/mod.rs`
 - `src/boundary/url_policy.rs`
 - `src/boundary/mod.rs`
+- `src/platform/chrome_adapter.rs`
 - `src/platform/webkit_adapter.rs`
 - `src/platform/mod.rs`
 - `src/compute/lane_manager.rs`
