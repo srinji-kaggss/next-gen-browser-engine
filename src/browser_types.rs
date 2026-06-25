@@ -243,3 +243,13 @@ pub enum Verdict {
     Deny,
     Confirm,
 }
+
+impl Verdict {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Verdict::Allow => "allow",
+            Verdict::Deny => "deny",
+            Verdict::Confirm => "confirm",
+        }
+    }
+}
