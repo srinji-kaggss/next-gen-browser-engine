@@ -84,10 +84,12 @@ mod tests {
                 Cid::compute(WEB_ELEMENT_DOMAIN, b"a1b2c3").0.to_vec()
             ))
         );
-        let facts = match value.get("facts") {
-            Some(Value::List(facts)) => facts,
-            _ => panic!("expected facts list"),
-        };
+        let facts = value.get("facts").and_then(|value| match value {
+            Value::List(facts) => Some(facts),
+            _ => None,
+        });
+        assert!(facts.is_some(), "expected facts list");
+        let facts = facts.unwrap();
         assert!(facts.iter().any(|fact| {
             fact.get("predicate") == Some(&Value::Text("tag".to_string()))
                 && fact.get("object") == Some(&Value::Text("a".to_string()))

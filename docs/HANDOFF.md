@@ -155,8 +155,7 @@ Results: **32 tests OK, gate OK, no_std OK, clippy clean**.
 
 ## Final seams for the next agent
 
-1. **Chrome/CDP driver** — `platform/chrome_adapter.rs` is implemented in PR #11; merge it and then build the real CDP driver binary that emits the JSONL shape. This becomes the default driver; mac-eye is the mac-native alternate.
-2. **Policy-to-observation wiring** — route `WebKitAdapter::execute_js` through `PolicyBroker` and emit an execution trace observation.
-3. **Tape append** — implement `tape/fact_store.rs` so every observation and action appends a `TapeRecord`.
-4. **Pixel anchor** — implement `observation/pixel_anchor.rs` to bind screenshot regions to element CIDs.
-5. **Embedding model swap** — evaluate a text-only model for code chunks; keep Qwen3-VL for visual chunks only.
+1. **Native engine boundary** — `platform/webkit_adapter.rs` still keeps raw `load` and `execute_js` behind seams. Build the native bridge so it emits the existing JSONL observations and consumes policy-admitted actions; do not execute guest code from the Rust core.
+2. **Signer integration** — `CapabilityBroker::issue` / `attenuate` validate and fail closed, but still need the concrete DID/signature scheme before they can mint or resign credentials.
+3. **Sandbox runtime integration** — `compute/lane_manager.rs` now admits JS/Wasm effects via `web.compute.local`; wire the admitted action into the native sandbox/runtime boundary.
+4. **Embedding model swap** — evaluate a text-only model for code chunks; keep Qwen3-VL for visual chunks only.
