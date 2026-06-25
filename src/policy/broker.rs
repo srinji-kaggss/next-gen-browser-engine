@@ -1,5 +1,9 @@
 //! Traceability: AXIOM_POLICY_AUTHORITY, AXIOM_CLOSED_ACTIONS, AXIOM_LLMS_SENSOR_ONLY.
-use crate::{action::Action, browser_types::*, capability::WebCapability};
+use crate::{
+    action::Action,
+    browser_types::*,
+    capability::{CapabilityBroker, WebCapability},
+};
 
 /// DAL-A policy broker.
 /// (facts, proposed_action, caller_caps) -> Verdict
@@ -30,24 +34,15 @@ impl PolicyBroker {
             return Verdict::Deny;
         }
 
-        // Rule 2: capability covers the verb. Empty caps => deny when deny-first is true.
+        // Rule 2/3: capability covers the Braid authority, closed verb, origin,
+        // and byte budget. Empty caps => deny when deny-first is true.
         if self.deny_first && caps.is_empty() {
             return Verdict::Deny;
         }
         for cap in caps {
-            if !cap.attenuation.allowed_verbs.is_empty()
-                && !cap.attenuation.allowed_verbs.contains(&action.verb)
-            {
-                return Verdict::Deny;
-            }
-        }
-
-        // Rule 3: origin containment. The origin is a typed field on the action
-        // (A3), not parsed from the content-address.
-        let target_origin = &action.origin;
-        for cap in caps {
-            if !cap.attenuation.allowed_origins.is_empty()
-                && !cap.attenuation.allowed_origins.contains(target_origin)
+            if CapabilityBroker::new()
+                .authorize(cap, action.verb, &action.origin, action.parameters.len())
+                .is_err()
             {
                 return Verdict::Deny;
             }
@@ -90,15 +85,22 @@ fn is_closed_verb(verb: &str) -> bool {
 mod tests {
     use super::*;
     use crate::capability::Attenuation;
-    use alloc::string::ToString;
+    use alloc::string::{String, ToString};
     use alloc::vec;
     use alloc::vec::Vec;
 
-    fn cap(verbs: Vec<ActionVerb>, origins: Vec<&str>) -> WebCapability {
+    fn scope_for(verb: ActionVerb) -> String {
+        CapabilityBroker::new()
+            .required_scope(verb)
+            .unwrap()
+            .unwrap_or_default()
+    }
+
+    fn cap(verb: ActionVerb, verbs: Vec<ActionVerb>, origins: Vec<&str>) -> WebCapability {
         WebCapability {
             issuer_did: "did:system".to_string(),
             subject_did: "did:agent".to_string(),
-            scope: vec!["web".to_string()],
+            scope: vec![scope_for(verb)],
             privacy_tier: PrivacyTier::LocalFull,
             attenuation: Attenuation {
                 allowed_verbs: verbs,
@@ -135,7 +137,11 @@ mod tests {
     fn allow_matching_cap() {
         let broker = PolicyBroker::new();
         let a = action(ActionVerb::Click, "example.com", Risk::Low);
-        let c = cap(vec![ActionVerb::Click], vec!["example.com"]);
+        let c = cap(
+            ActionVerb::Click,
+            vec![ActionVerb::Click],
+            vec!["example.com"],
+        );
         assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Allow);
     }
 
@@ -143,7 +149,11 @@ mod tests {
     fn deny_wrong_verb() {
         let broker = PolicyBroker::new();
         let a = action(ActionVerb::ExecuteJs, "example.com", Risk::High);
-        let c = cap(vec![ActionVerb::Click], vec!["example.com"]);
+        let c = cap(
+            ActionVerb::Click,
+            vec![ActionVerb::Click],
+            vec!["example.com"],
+        );
         assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Deny);
     }
 
@@ -151,7 +161,11 @@ mod tests {
     fn deny_wrong_origin() {
         let broker = PolicyBroker::new();
         let a = action(ActionVerb::Click, "evil.com", Risk::Low);
-        let c = cap(vec![ActionVerb::Click], vec!["example.com"]);
+        let c = cap(
+            ActionVerb::Click,
+            vec![ActionVerb::Click],
+            vec!["example.com"],
+        );
         assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Deny);
     }
 
@@ -159,7 +173,11 @@ mod tests {
     fn confirm_high_risk() {
         let broker = PolicyBroker::new();
         let a = action(ActionVerb::Download, "example.com", Risk::High);
-        let c = cap(vec![ActionVerb::Download], vec!["example.com"]);
+        let c = cap(
+            ActionVerb::Download,
+            vec![ActionVerb::Download],
+            vec!["example.com"],
+        );
         assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Confirm);
     }
 
@@ -167,7 +185,11 @@ mod tests {
     fn human_only_requires_confirm_scope() {
         let broker = PolicyBroker::new();
         let a = action(ActionVerb::ExecuteJs, "example.com", Risk::HumanOnly);
-        let c = cap(vec![ActionVerb::ExecuteJs], vec!["example.com"]);
+        let c = cap(
+            ActionVerb::ExecuteJs,
+            vec![ActionVerb::ExecuteJs],
+            vec!["example.com"],
+        );
         assert_eq!(broker.decide(&[], &a, &[c.clone()]), Verdict::Confirm);
 
         let mut human = c.clone();
@@ -179,7 +201,23 @@ mod tests {
     fn denied_risk_overrides() {
         let broker = PolicyBroker::new();
         let a = action(ActionVerb::Navigate, "example.com", Risk::Denied);
-        let c = cap(vec![ActionVerb::Navigate], vec!["example.com"]);
+        let c = cap(
+            ActionVerb::Navigate,
+            vec![ActionVerb::Navigate],
+            vec!["example.com"],
+        );
+        assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Deny);
+    }
+
+    #[test]
+    fn deny_wrong_braid_scope() {
+        let broker = PolicyBroker::new();
+        let a = action(ActionVerb::ExecuteJs, "example.com", Risk::Low);
+        let c = cap(
+            ActionVerb::Click,
+            vec![ActionVerb::ExecuteJs],
+            vec!["example.com"],
+        );
         assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Deny);
     }
 }

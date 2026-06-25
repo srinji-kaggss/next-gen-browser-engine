@@ -81,6 +81,12 @@ impl CapabilityBroker {
         }
         Ok(())
     }
+
+    /// Return the Braid vocabulary capability required by a browser verb.
+    /// Pure verbs such as `web.wait` have no capability requirement.
+    pub fn required_scope(&self, verb: ActionVerb) -> Result<Option<String>, &'static str> {
+        required_scope_for_verb(verb)
+    }
 }
 
 impl Default for CapabilityBroker {
@@ -176,6 +182,18 @@ mod tests {
         assert_eq!(
             CapabilityBroker::new().authorize(&c, ActionVerb::ExecuteJs, "example.com", 12),
             Ok(())
+        );
+    }
+
+    #[test]
+    fn required_scope_is_read_from_braid_vocab_web() {
+        assert_eq!(
+            CapabilityBroker::new().required_scope(ActionVerb::ExecuteJs),
+            Ok(Some(braid_vocab_web::COMPUTE_LOCAL_NAME.to_string()))
+        );
+        assert_eq!(
+            CapabilityBroker::new().required_scope(ActionVerb::Wait),
+            Ok(None)
         );
     }
 

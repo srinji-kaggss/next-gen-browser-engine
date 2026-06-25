@@ -187,11 +187,11 @@ mod tests {
     use crate::capability::Attenuation;
     use alloc::vec;
 
-    fn cap(verbs: Vec<ActionVerb>, origins: Vec<&str>) -> WebCapability {
+    fn cap(scope: &str, verbs: Vec<ActionVerb>, origins: Vec<&str>) -> WebCapability {
         WebCapability {
             issuer_did: "did:system".to_string(),
             subject_did: "did:agent".to_string(),
-            scope: vec!["web".to_string()],
+            scope: vec![scope.to_string()],
             privacy_tier: PrivacyTier::LocalFull,
             attenuation: Attenuation {
                 allowed_verbs: verbs,
@@ -258,7 +258,11 @@ mod tests {
     fn execute_js_trace_marks_allowed_action_executed() {
         let adapter = WebKitAdapter::new();
         let action = execute_js_action("example.com");
-        let capability = cap(vec![ActionVerb::ExecuteJs], vec!["example.com"]);
+        let capability = cap(
+            braid_vocab_web::COMPUTE_LOCAL_NAME,
+            vec![ActionVerb::ExecuteJs],
+            vec!["example.com"],
+        );
         let trace = adapter
             .execute_js_trace(&[], &action, &[capability])
             .expect("trace");
@@ -278,7 +282,11 @@ mod tests {
     fn execute_js_trace_marks_denied_action_unexecuted() {
         let adapter = WebKitAdapter::new();
         let action = execute_js_action("evil.com");
-        let capability = cap(vec![ActionVerb::Click], vec!["example.com"]);
+        let capability = cap(
+            braid_vocab_web::INTERACT_NAME,
+            vec![ActionVerb::Click],
+            vec!["example.com"],
+        );
         let trace = adapter
             .execute_js_trace(&[], &action, &[capability])
             .expect("trace");
