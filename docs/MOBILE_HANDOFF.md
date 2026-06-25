@@ -53,10 +53,11 @@ substrate could depend on it — that's why both repos had re-declared/snapshott
    — note the shape gap: `braid-render` renders a `Capsule`, `okf` renders observations,
    so this needs a small design pass, not a 1:1 swap.
 
-4. **Fill the `todo!()` stubs** against kernel primitives (the brain): `tape/fact_store.rs`
-   → the kernel Causal Tape / `FactStore`; `capability/mod.rs` `issue`/`attenuate` → the
-   kernel rights/authority calculus; `compute/lane_manager.rs` sandbox → kernel
-   `node-cage` (seccomp). These cross into `logic-os-kernel` — consume, don't re-author.
+4. **Finish native/kernel-backed seams** against kernel primitives (the brain):
+   `capability/mod.rs` now validates and fails closed but still needs the real
+   DID signer; `compute/lane_manager.rs` now admits JS/Wasm effects but still
+   needs the native sandbox runtime; any remaining tape/native bridge work
+   should consume `logic-os-kernel` primitives, not re-author them locally.
 
 5. **logic-os-kernel side:** retire the pinned-snapshot seam
    (`kernel/crates/canvas-syscall/tests/braid_vocab_binding.rs`, issues #565/#602) for a

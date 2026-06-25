@@ -111,3 +111,15 @@ Before a script or module runs:
 3. Policy broker admits `web.execute_js` or `web.execute_wasm` action.
 4. Execution is bounded by budget.
 5. Outcome is appended to tape.
+
+## 9. Legacy JVM Compatibility Is Quarantined
+
+Java/JVM compatibility is a legacy lane, not a design center. If a target page
+or enterprise surface truly requires Java-era behavior, it enters through a
+compatibility adapter with the same capability table, policy admission, byte
+budget, and tape obligations as every other guest runtime.
+
+Strategic rule: no Java runtime, JVM object model, classloader authority, or
+ambient permission pattern may shape the core substrate. Compatibility exists
+to contain old dependencies while the browser moves the platform toward
+smaller, typed, capability-bounded compute.

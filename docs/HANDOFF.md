@@ -139,8 +139,9 @@ Results: **32 tests OK, gate OK, no_std OK, clippy clean**.
 
 ## Known limitations / debts
 
-- `CapabilityBroker::issue` and `CapabilityBroker::attenuate` are still `todo!()` in `src/capability/mod.rs`. Policy broker tests build capabilities directly. Implement these only when a concrete signature scheme is chosen.
-- `compute/lane_manager.rs`, `audit/lens.rs`, `tape/fact_store.rs`, and `observation/pixel_anchor.rs` remain `todo!()` stubs. They should be filled once observations flow end-to-end through a real driver.
+- `CapabilityBroker::issue` and `CapabilityBroker::attenuate` now fail closed after validating principals/scope/attenuation. They still do not mint or resign credentials; wire these to a concrete signer only when the DID/signature scheme is chosen.
+- `compute/lane_manager.rs` now performs capability/effect admission for JS and Wasm and returns the closed action verb; it does not execute guest code. Native sandbox execution remains owned by the brought-in runtime boundary.
+- `platform/webkit_adapter.rs` still leaves native `load` and raw `execute_js` behind explicit seams. Use `execute_js_trace` for policy/audit observations until the native bridge is wired.
 - The ingestion pipeline workaround for `lgwks repo graph` only parsing `.py`/`.rs` is logged at `srinji-kaggss/logicalworks-#234`. Do not remove the custom `git grep` parsers until that issue is closed.
 - The research SQLite DBs are not in git; if regenerating them, use the same scripts and verify counts against `docs/BROWSER_ENGINE_UNDERSTANDINGS.json`.
 - Embedding model decision for #12: `qwen/qwen3-embedding-8b` via OpenRouter is the viable choice. It is SOTA on MTEB(Code, v1) (80.68 nDCG@10 as of June 2025) and the OpenRouter runner sustains ~16–33 s per 64-chunk batch (well under the #12 <60 s / 32-chunk acceptance bar). The temporary `Octen/Octen-Embedding-8B` runner was abandoned because it could not complete a 32-chunk batch in 10 min locally. The 352 Octen embeddings already in the Chromium DB should be considered a stale experiment and can be left or deleted once the pass is complete.
