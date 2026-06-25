@@ -1,6 +1,8 @@
 //! Traceability: AXIOM_BRAID_CANONICAL, AXIOM_DERIVED_LENS.
 use crate::{browser_types::*, observation::anchor::observation_from_payload};
-use braid_ir::Value;
+use alloc::string::ToString;
+use alloc::vec::Vec;
+use braid_ir::{canon, Value};
 
 /// Adapter between canonical `WebAnchor` facts and Braid IR values.
 pub struct BraidAdapter;
@@ -26,9 +28,15 @@ impl BraidAdapter {
     /// Project a Braid value back into a canonical `WebAnchor`.
     ///
     /// This is the inverse of `to_braid` for round-trip verification.
-    pub fn from_braid(_value: &Value) -> Result<WebAnchor, &'static str> {
-        // Deferred: full inverse requires canonical serialization of every projected family.
-        Err("from_braid deferred behind seam")
+    pub fn from_braid(value: &Value) -> Result<WebAnchor, &'static str> {
+        let payload = canon::encode(value);
+        let obs = observation_from_payload(&payload)?;
+        Ok(obs.to_anchor(Provenance {
+            source: "braid-ir".to_string(),
+            input_cids: Vec::new(),
+            trust_class: obs.trust_class,
+            did_principal: None,
+        }))
     }
 }
 
@@ -84,6 +92,36 @@ mod tests {
             fact.get("predicate") == Some(&Value::Text("tag".to_string()))
                 && fact.get("object") == Some(&Value::Text("a".to_string()))
         }));
+    }
+
+    #[test]
+    fn observation_value_round_trips_back_to_anchor() {
+        let obs = ObservationAnchor {
+            kind: ObservationKind::Element,
+            target_cid: Cid::compute(WEB_ELEMENT_DOMAIN, b"a1b2c3"),
+            observed_at: "2026-06-18T00:00:00Z".to_string(),
+            facts: vec![Fact {
+                predicate: "tag".to_string(),
+                object: "a".to_string(),
+                sensitivity: None,
+            }],
+            sensitivity: None,
+            privacy_tier: PrivacyTier::LocalFull,
+            trust_class: TrustClass::UntrustedContent,
+            raw_source: None,
+        };
+        let anchor = obs.to_anchor(Provenance {
+            source: "mac-eye".to_string(),
+            input_cids: Vec::new(),
+            trust_class: TrustClass::UntrustedContent,
+            did_principal: None,
+        });
+        let value = BraidAdapter::to_braid(&anchor).unwrap();
+        let recovered = BraidAdapter::from_braid(&value).unwrap();
+
+        assert_eq!(recovered.cid, anchor.cid);
+        assert_eq!(recovered.payload, anchor.payload);
+        assert_eq!(recovered.term_family, TermFamily::Observation);
     }
 
     #[test]
