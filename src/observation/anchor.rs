@@ -1,7 +1,9 @@
 //! Traceability: AXIOM_OBSERVABILITY_TYPED, AXIOM_BRAID_CANONICAL, AXIOM_PRIVACY_TIER.
 use crate::browser_types::*;
 use alloc::string::{String, ToString};
+use alloc::vec;
 use alloc::vec::Vec;
+use braid_ir::{canon, Value};
 
 /// A typed observation fact derived from WebKit output.
 pub struct ObservationAnchor {
@@ -16,36 +18,47 @@ pub struct ObservationAnchor {
 }
 
 impl ObservationAnchor {
-    /// Deterministic canonical bytes used to compute this observation's CID.
+    /// Deterministic canonical bytes used to compute this observation's CID:
+    /// Braid's bijection-guarded canonical encoding (`canon::encode`) of the
+    /// typed value — NOT a hand-rolled format. One observation ⇒ one byte
+    /// string, and decode re-encodes to verify (T3). Map-key order is Braid's.
     ///
     /// Traceability: AXIOM_BRAID_CANONICAL, AXIOM_PROVENANCE_MANDATORY.
     pub fn canonical_bytes(&self) -> Vec<u8> {
-        let mut out = Vec::new();
-        out.extend_from_slice(b"observation\n");
-        write_field(&mut out, "kind", self.kind.as_str());
-        write_field(&mut out, "target_cid", &self.target_cid);
-        write_field(&mut out, "observed_at", &self.observed_at);
-        write_field(&mut out, "privacy_tier", self.privacy_tier.as_str());
-        write_field(&mut out, "trust_class", self.trust_class.as_str());
+        canon::encode(&self.to_value())
+    }
 
-        // Sort facts by predicate for determinism.
+    /// Project this observation into the canonical Braid value universe.
+    fn to_value(&self) -> Value {
         let mut sorted = self.facts.clone();
         sorted.sort_by(|a, b| a.predicate.cmp(&b.predicate));
-        for fact in &sorted {
-            out.extend_from_slice(b"fact\n");
-            write_field(&mut out, "predicate", &fact.predicate);
-            write_field(&mut out, "object", &fact.object);
-            if let Some(s) = fact.sensitivity {
-                write_field(&mut out, "sensitivity", s.as_str());
-            }
-        }
-        out
+        let facts: Vec<Value> = sorted
+            .iter()
+            .map(|f| {
+                let mut m = vec![
+                    ("object", Value::Text(f.object.clone())),
+                    ("predicate", Value::Text(f.predicate.clone())),
+                ];
+                if let Some(s) = f.sensitivity {
+                    m.push(("sensitivity", Value::Text(s.as_str().to_string())));
+                }
+                Value::map(m)
+            })
+            .collect();
+        Value::map(vec![
+            ("facts", Value::List(facts)),
+            ("kind", Value::Text(self.kind.as_str().to_string())),
+            ("observed_at", Value::Text(self.observed_at.clone())),
+            ("privacy_tier", Value::Text(self.privacy_tier.as_str().to_string())),
+            ("target_cid", Value::Bytes(self.target_cid.0.to_vec())),
+            ("trust_class", Value::Text(self.trust_class.as_str().to_string())),
+        ])
     }
 
     /// Seal this observation as a content-addressed `WebAnchor`.
     pub fn to_anchor(&self, provenance: Provenance) -> WebAnchor {
         let payload = self.canonical_bytes();
-        let cid = cid_from_bytes(&payload);
+        let cid = Cid::compute(WEB_ANCHOR_DOMAIN, &payload);
         WebAnchor {
             cid,
             term_family: TermFamily::Observation,
@@ -56,80 +69,89 @@ impl ObservationAnchor {
     }
 }
 
-fn write_field(out: &mut Vec<u8>, key: &str, value: &str) {
-    out.extend_from_slice(key.as_bytes());
-    out.push(b'=');
-    out.extend_from_slice(value.as_bytes());
-    out.push(b'\n');
-}
-
 /// Recover an `ObservationAnchor` from the canonical payload of a `WebAnchor`.
 ///
 /// Traceability: AXIOM_BRAID_CANONICAL.
+/// Strict: only Braid-canonical bytes decode (bijection-guarded). Unknown
+/// fields are rejected (T3); absence is never defaulted (fail-closed L9).
+///
+/// Traceability: AXIOM_BRAID_CANONICAL.
 pub fn observation_from_payload(payload: &[u8]) -> Result<ObservationAnchor, &'static str> {
-    let s = core::str::from_utf8(payload).map_err(|_| "invalid utf8")?;
-    let mut lines = s.lines();
-    let first = lines.next().ok_or("missing observation header")?;
-    if first != "observation" {
-        return Err("missing observation prefix");
+    let v = canon::decode_strict(payload).map_err(|_| "non-canonical observation payload")?;
+    if !v.require_only_keys(&[
+        "facts",
+        "kind",
+        "observed_at",
+        "privacy_tier",
+        "target_cid",
+        "trust_class",
+    ]) {
+        return Err("observation: unknown field");
     }
-
-    let mut kind: Option<ObservationKind> = None;
-    let mut target_cid: Option<String> = None;
-    let mut observed_at: Option<String> = None;
-    let mut privacy_tier: Option<PrivacyTier> = None;
-    let mut trust_class: Option<TrustClass> = None;
-    let mut facts: Vec<Fact> = Vec::new();
-    let mut current: Option<Fact> = None;
-
-    for line in lines {
-        if line == "fact" {
-            if let Some(f) = current.take() {
-                facts.push(f);
-            }
-            current = Some(Fact {
-                predicate: String::new(),
-                object: String::new(),
-                sensitivity: None,
-            });
-            continue;
+    let kind = match v.get("kind") {
+        Some(Value::Text(s)) => parse_observation_kind(s)?,
+        _ => return Err("missing kind"),
+    };
+    let target_cid = match v.get("target_cid") {
+        Some(Value::Bytes(b)) if b.len() == 32 => {
+            let mut arr = [0u8; 32];
+            arr.copy_from_slice(b);
+            Cid(arr)
         }
-        let (key, value) = line.split_once('=').ok_or("malformed field")?;
-        match key {
-            "kind" => kind = Some(parse_observation_kind(value)?),
-            "target_cid" => target_cid = Some(value.to_string()),
-            "observed_at" => observed_at = Some(value.to_string()),
-            "privacy_tier" => privacy_tier = Some(parse_privacy_tier(value)?),
-            "trust_class" => trust_class = Some(parse_trust_class(value)?),
-            "predicate" => {
-                current
-                    .as_mut()
-                    .ok_or("predicate outside fact")?
-                    .predicate = value.to_string();
-            }
-            "object" => {
-                current.as_mut().ok_or("object outside fact")?.object = value.to_string();
-            }
-            "sensitivity" => {
-                current.as_mut().ok_or("sensitivity outside fact")?.sensitivity =
-                    Some(parse_sensitivity_class(value)?);
-            }
-            _ => return Err("unknown field"),
-        }
-    }
-    if let Some(f) = current.take() {
-        facts.push(f);
-    }
-
+        _ => return Err("missing or malformed target_cid"),
+    };
+    let observed_at = match v.get("observed_at") {
+        Some(Value::Text(s)) => s.clone(),
+        _ => return Err("missing observed_at"),
+    };
+    let privacy_tier = match v.get("privacy_tier") {
+        Some(Value::Text(s)) => parse_privacy_tier(s)?,
+        _ => return Err("missing privacy_tier"),
+    };
+    let trust_class = match v.get("trust_class") {
+        Some(Value::Text(s)) => parse_trust_class(s)?,
+        _ => return Err("missing trust_class"),
+    };
+    let facts = match v.get("facts") {
+        Some(Value::List(items)) => items
+            .iter()
+            .map(fact_from_value)
+            .collect::<Result<Vec<_>, _>>()?,
+        _ => return Err("missing facts"),
+    };
     Ok(ObservationAnchor {
-        kind: kind.ok_or("missing kind")?,
-        target_cid: target_cid.ok_or("missing target_cid")?,
-        observed_at: observed_at.ok_or("missing observed_at")?,
+        kind,
+        target_cid,
+        observed_at,
         facts,
         sensitivity: None,
-        privacy_tier: privacy_tier.ok_or("missing privacy_tier")?,
-        trust_class: trust_class.ok_or("missing trust_class")?,
+        privacy_tier,
+        trust_class,
         raw_source: None,
+    })
+}
+
+fn fact_from_value(v: &Value) -> Result<Fact, &'static str> {
+    if !v.require_only_keys(&["object", "predicate", "sensitivity"]) {
+        return Err("fact: unknown field");
+    }
+    let predicate = match v.get("predicate") {
+        Some(Value::Text(s)) => s.clone(),
+        _ => return Err("missing predicate"),
+    };
+    let object = match v.get("object") {
+        Some(Value::Text(s)) => s.clone(),
+        _ => return Err("missing object"),
+    };
+    let sensitivity = match v.get("sensitivity") {
+        None => None,
+        Some(Value::Text(s)) => Some(parse_sensitivity_class(s)?),
+        Some(_) => return Err("malformed sensitivity"),
+    };
+    Ok(Fact {
+        predicate,
+        object,
+        sensitivity,
     })
 }
 
@@ -196,7 +218,7 @@ mod tests {
     fn sample_observation() -> ObservationAnchor {
         ObservationAnchor {
             kind: ObservationKind::Element,
-            target_cid: "a1b2c3".to_string(),
+            target_cid: Cid::compute(WEB_ELEMENT_DOMAIN, b"a1b2c3"),
             observed_at: "2026-06-18T00:00:00Z".to_string(),
             facts: vec![
                 Fact {
@@ -234,7 +256,7 @@ mod tests {
             did_principal: None,
         });
         assert_eq!(anchor.term_family, TermFamily::Observation);
-        assert_eq!(anchor.cid.len(), 64);
+        assert_eq!(anchor.cid.to_hex().len(), 64);
         assert!(!anchor.payload.is_empty());
     }
 

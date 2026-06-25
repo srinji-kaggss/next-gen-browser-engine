@@ -102,7 +102,7 @@ fn parse_observation_line(line: &str) -> Result<ObservationAnchor, &'static str>
     // The target CID is content-addressed from the stable path. Combined with
     // the anchor CID (which hashes the full canonical observation including
     // facts), the same DOM element with the same text yields stable IDs.
-    let target_cid = cid_from_bytes(raw.path.as_bytes());
+    let target_cid = Cid::compute(WEB_ELEMENT_DOMAIN, raw.path.as_bytes());
 
     Ok(ObservationAnchor {
         kind,
@@ -131,7 +131,7 @@ mod tests {
         let line = r#"{"kind":"element","path":"body>div>a:0","facts":[["tag","a"],["text","Sign in"],["bounds","12,34,56,78"],["interactable","true"]]}"#;
         let obs = parse_observation_line(line).unwrap();
         assert_eq!(obs.kind, ObservationKind::Element);
-        assert_eq!(obs.target_cid, cid_from_bytes("body>div>a:0".as_bytes()));
+        assert_eq!(obs.target_cid, Cid::compute(WEB_ELEMENT_DOMAIN, "body>div>a:0".as_bytes()));
         assert_eq!(obs.facts.len(), 4);
     }
 

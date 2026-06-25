@@ -41,7 +41,7 @@ impl BraidAdapter {
             }
             TermFamily::Action => Ok(BraidTerm::Action(WebActionTerm {
                 verb: "unknown".to_string(),
-                target_cid: anchor.cid.clone(),
+                target_cid: anchor.cid,
                 parameters: Vec::new(),
             })),
             TermFamily::Capability => Ok(BraidTerm::Capability(WebCapabilityTerm {
@@ -83,7 +83,7 @@ mod tests {
     fn observation_anchor_to_braid() {
         let obs = ObservationAnchor {
             kind: ObservationKind::Element,
-            target_cid: "a1b2c3".to_string(),
+            target_cid: Cid::compute(WEB_ELEMENT_DOMAIN, b"a1b2c3"),
             observed_at: "2026-06-18T00:00:00Z".to_string(),
             facts: vec![Fact {
                 predicate: "tag".to_string(),
@@ -105,7 +105,7 @@ mod tests {
         match term {
             BraidTerm::Observation(o) => {
                 assert_eq!(o.kind, "element");
-                assert_eq!(o.target_cid, "a1b2c3");
+                assert_eq!(o.target_cid, Cid::compute(WEB_ELEMENT_DOMAIN, b"a1b2c3"));
                 assert!(o.facts.iter().any(|(k, _)| k == "tag"));
             }
             _ => panic!("expected Observation term"),
@@ -115,7 +115,7 @@ mod tests {
     #[test]
     fn unknown_term_family_errors() {
         let anchor = WebAnchor {
-            cid: "aabbcc".to_string(),
+            cid: Cid::compute(WEB_ANCHOR_DOMAIN, b"aabbcc"),
             term_family: TermFamily::Transition,
             created_at: "2026-06-18T00:00:00Z".to_string(),
             provenance: Provenance {

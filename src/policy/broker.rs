@@ -1,6 +1,5 @@
 //! Traceability: AXIOM_POLICY_AUTHORITY, AXIOM_CLOSED_ACTIONS, AXIOM_LLMS_SENSOR_ONLY.
 use crate::{action::Action, browser_types::*, capability::WebCapability};
-use alloc::string::ToString;
 
 /// DAL-A policy broker.
 /// (facts, proposed_action, caller_caps) -> Verdict
@@ -41,12 +40,12 @@ impl PolicyBroker {
             }
         }
 
-        // Rule 3: origin containment. Extract origin from target_cid heuristically for now;
-        // in a full impl the target CID resolves to an origin fact.
-        let target_origin = origin_from_cid(&action.target_cid);
+        // Rule 3: origin containment. The origin is a typed field on the action
+        // (A3), not parsed from the content-address.
+        let target_origin = &action.origin;
         for cap in caps {
             if !cap.attenuation.allowed_origins.is_empty()
-                && !cap.attenuation.allowed_origins.contains(&target_origin)
+                && !cap.attenuation.allowed_origins.contains(target_origin)
             {
                 return Verdict::Deny;
             }
@@ -96,15 +95,6 @@ fn is_closed_verb(verb: &str) -> bool {
     )
 }
 
-fn origin_from_cid(cid: &str) -> Origin {
-    // Placeholder: a real implementation resolves the CID to a canonical origin fact.
-    // For deterministic policy tests we treat a CID containing an origin as that origin.
-    if cid.starts_with("origin:") {
-        return cid.strip_prefix("origin:").unwrap_or(cid).to_string();
-    }
-    "default".to_string()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -131,11 +121,12 @@ mod tests {
         }
     }
 
-    fn action(verb: ActionVerb, target: &str, risk: Risk) -> Action {
+    fn action(verb: ActionVerb, origin: &str, risk: Risk) -> Action {
         Action {
             verb,
-            target_cid: target.to_string(),
-            capability_cid: "cap-1".to_string(),
+            target_cid: Cid::compute(WEB_ELEMENT_DOMAIN, origin.as_bytes()),
+            origin: origin.to_string(),
+            capability_cid: Cid::compute(WEB_ELEMENT_DOMAIN, b"cap-1"),
             risk,
             parameters: Vec::new(),
             effect_signature: Vec::new(),
@@ -145,14 +136,14 @@ mod tests {
     #[test]
     fn deny_when_no_caps() {
         let broker = PolicyBroker::new();
-        let a = action(ActionVerb::Click, "origin:example.com", Risk::Low);
+        let a = action(ActionVerb::Click, "example.com", Risk::Low);
         assert_eq!(broker.decide(&[], &a, &[]), Verdict::Deny);
     }
 
     #[test]
     fn allow_matching_cap() {
         let broker = PolicyBroker::new();
-        let a = action(ActionVerb::Click, "origin:example.com", Risk::Low);
+        let a = action(ActionVerb::Click, "example.com", Risk::Low);
         let c = cap(vec![ActionVerb::Click], vec!["example.com"]);
         assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Allow);
     }
@@ -160,7 +151,7 @@ mod tests {
     #[test]
     fn deny_wrong_verb() {
         let broker = PolicyBroker::new();
-        let a = action(ActionVerb::ExecuteJs, "origin:example.com", Risk::High);
+        let a = action(ActionVerb::ExecuteJs, "example.com", Risk::High);
         let c = cap(vec![ActionVerb::Click], vec!["example.com"]);
         assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Deny);
     }
@@ -168,7 +159,7 @@ mod tests {
     #[test]
     fn deny_wrong_origin() {
         let broker = PolicyBroker::new();
-        let a = action(ActionVerb::Click, "origin:evil.com", Risk::Low);
+        let a = action(ActionVerb::Click, "evil.com", Risk::Low);
         let c = cap(vec![ActionVerb::Click], vec!["example.com"]);
         assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Deny);
     }
@@ -176,7 +167,7 @@ mod tests {
     #[test]
     fn confirm_high_risk() {
         let broker = PolicyBroker::new();
-        let a = action(ActionVerb::Download, "origin:example.com", Risk::High);
+        let a = action(ActionVerb::Download, "example.com", Risk::High);
         let c = cap(vec![ActionVerb::Download], vec!["example.com"]);
         assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Confirm);
     }
@@ -184,7 +175,7 @@ mod tests {
     #[test]
     fn human_only_requires_confirm_scope() {
         let broker = PolicyBroker::new();
-        let a = action(ActionVerb::ExecuteJs, "origin:example.com", Risk::HumanOnly);
+        let a = action(ActionVerb::ExecuteJs, "example.com", Risk::HumanOnly);
         let c = cap(vec![ActionVerb::ExecuteJs], vec!["example.com"]);
         assert_eq!(broker.decide(&[], &a, &[c.clone()]), Verdict::Confirm);
 
@@ -196,7 +187,7 @@ mod tests {
     #[test]
     fn denied_risk_overrides() {
         let broker = PolicyBroker::new();
-        let a = action(ActionVerb::Navigate, "origin:example.com", Risk::Denied);
+        let a = action(ActionVerb::Navigate, "example.com", Risk::Denied);
         let c = cap(vec![ActionVerb::Navigate], vec!["example.com"]);
         assert_eq!(broker.decide(&[], &a, &[c]), Verdict::Deny);
     }

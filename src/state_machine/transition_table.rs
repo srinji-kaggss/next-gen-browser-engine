@@ -86,8 +86,9 @@ mod tests {
     fn action(verb: ActionVerb, risk: Risk) -> Action {
         Action {
             verb,
-            target_cid: "origin:example.com".to_string(),
-            capability_cid: "cap-1".to_string(),
+            target_cid: Cid::compute(WEB_ELEMENT_DOMAIN, b"example.com"),
+            origin: "example.com".to_string(),
+            capability_cid: Cid::compute(WEB_ELEMENT_DOMAIN, b"cap-1"),
             risk,
             parameters: Vec::new(),
             effect_signature: Vec::new(),
