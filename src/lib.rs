@@ -8,6 +8,7 @@ pub mod braid_bridge;
 pub mod browser_axioms;
 pub mod browser_types;
 pub mod capability;
+pub mod compat;
 pub mod compute;
 pub mod observation;
 pub mod platform;

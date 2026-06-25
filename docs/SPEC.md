@@ -12,6 +12,11 @@ The engine supports multiple browser drivers:
 - **macOS alternate:** `mac-eye` native WKWebView bridge.
 - **Test fixture:** mock driver with deterministic observations.
 
+Product-axis note: ADR-001 describes the standalone browser direction built by
+bring-in + defense. This HLR keeps the substrate/bridge contract alive: the same
+canonical state and policy membrane must work under copied/brought-in engine
+muscle, CDP bootstrap drivers, WKWebView, or deterministic fixtures.
+
 ## 2. Requirements
 
 ### HLR-01: Canonical Braid State Engine
@@ -83,3 +88,17 @@ The engine MUST consume observations from any compliant browser driver. The cano
 - **Rust Seams:** `src/platform/*`
 - **Verifier:** `test/platform_*`, mock-driver differential tests
 - **Axiom Mapping:** A2, A10, A14
+
+### HLR-08: Developer Compatibility Contract
+
+The engine MUST classify developer workloads into native engine, guest compute,
+quarantined legacy, or reject modes before execution. Java/JVM compatibility
+MUST be represented only as quarantined guest compute; JVM classloader,
+filesystem, network, reflection, native library, plugin, or extension authority
+MUST NOT enter the core substrate unless represented by closed capabilities.
+
+- **DAL:** A (compatibility classifier / capability mapping)
+- **Tracing Marker:** `Tracing: HLR-08`
+- **Rust Seams:** `src/compat/*`, `src/capability/*`, `src/compute/*`
+- **Verifier:** `test/compat_*`, structural gate `SEC.forbidden.api`
+- **Axiom Mapping:** A4, A5, A9, A12, A13

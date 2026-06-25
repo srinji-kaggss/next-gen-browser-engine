@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { computeSrcManifest, renderManifestBlock, extractSeamsSection } from './gen_locked_files.mjs';
 
 const phase = process.argv.find(a => a.startsWith('--phase='))?.split('=')[1] || 'all';
 const root = process.cwd();
@@ -90,10 +91,14 @@ if (phase === 'dup' || phase === 'all') {
 }
 
 if (phase === 'audit-struct' || phase === 'all') {
-  const locked = readText(join(docsDir, 'LOCKED_FILES.md'));
-  for (const file of srcFiles()) {
-    const rel = relative(root, file);
-    if (!locked.includes(rel)) fail(`${rel} not listed in LOCKED_FILES.md`);
+  // The Rust Source Seams manifest is a generated mirror of src/. Enforce exact
+  // equality against the canonical computation (shared with ci/gen_locked_files.mjs):
+  // this catches missing entries, stale entries, and any hand-edit drift.
+  const expected = renderManifestBlock(computeSrcManifest(root));
+  const actual = extractSeamsSection(readText(join(docsDir, 'LOCKED_FILES.md')));
+  if (actual === null) fail('LOCKED_FILES.md missing "## Rust Source Seams" section');
+  if (actual !== expected) {
+    fail('LOCKED_FILES.md Rust Source Seams section is stale; run: node ci/gen_locked_files.mjs');
   }
 }
 

@@ -31,30 +31,31 @@ These files define the foundational seam of the web-cognition substrate. They ar
 
 ## Rust Source Seams
 
-- `src/lib.rs`
+- `src/action/mod.rs`
+- `src/audit/lens.rs`
+- `src/audit/mod.rs`
+- `src/boundary/mod.rs`
+- `src/boundary/url_policy.rs`
+- `src/braid_bridge/adapter.rs`
+- `src/braid_bridge/mod.rs`
 - `src/browser_axioms.rs`
 - `src/browser_types.rs`
 - `src/capability/mod.rs`
-- `src/policy/broker.rs`
-- `src/policy/mod.rs`
-- `src/tape/fact_store.rs`
-- `src/tape/mod.rs`
-- `src/observation/anchor.rs`
-- `src/observation/pixel_anchor.rs`
-- `src/observation/mod.rs`
-- `src/action/mod.rs`
-- `src/state_machine/transition_table.rs`
-- `src/state_machine/mod.rs`
-- `src/boundary/url_policy.rs`
-- `src/boundary/mod.rs`
-- `src/platform/webkit_adapter.rs`
-- `src/platform/mod.rs`
+- `src/compat/mod.rs`
 - `src/compute/lane_manager.rs`
 - `src/compute/mod.rs`
-- `src/audit/lens.rs`
-- `src/audit/mod.rs`
-- `src/braid_bridge/adapter.rs`
-- `src/braid_bridge/mod.rs`
+- `src/lib.rs`
+- `src/observation/anchor.rs`
+- `src/observation/mod.rs`
+- `src/observation/pixel_anchor.rs`
+- `src/platform/mod.rs`
+- `src/platform/webkit_adapter.rs`
+- `src/policy/broker.rs`
+- `src/policy/mod.rs`
+- `src/state_machine/mod.rs`
+- `src/state_machine/transition_table.rs`
+- `src/tape/fact_store.rs`
+- `src/tape/mod.rs`
 
 ## Build / CI
 

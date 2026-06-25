@@ -190,7 +190,10 @@ mod tests {
             vec![ActionVerb::ExecuteJs],
             vec!["example.com"],
         );
-        assert_eq!(broker.decide(&[], &a, &[c.clone()]), Verdict::Confirm);
+        assert_eq!(
+            broker.decide(&[], &a, std::slice::from_ref(&c)),
+            Verdict::Confirm
+        );
 
         let mut human = c.clone();
         human.scope.push("human-confirm".to_string());
