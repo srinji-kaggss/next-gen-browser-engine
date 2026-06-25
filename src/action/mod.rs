@@ -21,7 +21,13 @@ pub struct Action {
 impl Action {
     /// Validate that the action is one of the closed verbs.
     pub fn validate_verb(&self) -> Result<(), &'static str> {
-        let _ = self.verb.as_str();
-        Ok(())
+        if braid_vocab_web::registry_v0()
+            .get(self.verb.as_str())
+            .is_some()
+        {
+            Ok(())
+        } else {
+            Err("action verb is not registered in braid-vocab-web")
+        }
     }
 }

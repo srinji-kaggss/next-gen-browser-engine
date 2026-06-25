@@ -7,6 +7,7 @@ const root = process.cwd();
 const docsDir = join(root, 'docs');
 const srcDir = join(root, 'src');
 const schemasDir = join(root, 'schemas');
+const generatedDir = join(root, 'ci', 'generated');
 
 const fail = (msg) => { console.error(`FAIL: ${msg}`); process.exit(1); };
 const ok = () => { console.log(`OK: ${phase}`); process.exit(0); };
@@ -62,10 +63,7 @@ if (phase === 'docs' || phase === 'all') {
 }
 
 if (phase === 'vocab' || phase === 'all') {
-  const allowedVerbs = new Set([
-    'web.navigate', 'web.observe', 'web.click', 'web.type', 'web.scroll',
-    'web.download', 'web.wait', 'web.execute_js', 'web.execute_wasm'
-  ]);
+  const allowedVerbs = new Set(JSON.parse(readText(join(generatedDir, 'web_action_verbs.json'))));
   const termFamilies = new Set([
     'web.element', 'web.observation', 'web.action', 'web.capability',
     'web.verdict', 'web.transition', 'web.obs.aip_state', 'web.obs.aip_policy',

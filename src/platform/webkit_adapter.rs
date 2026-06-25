@@ -131,7 +131,10 @@ mod tests {
         let line = r#"{"kind":"element","path":"body>div>a:0","facts":[["tag","a"],["text","Sign in"],["bounds","12,34,56,78"],["interactable","true"]]}"#;
         let obs = parse_observation_line(line).unwrap();
         assert_eq!(obs.kind, ObservationKind::Element);
-        assert_eq!(obs.target_cid, Cid::compute(WEB_ELEMENT_DOMAIN, "body>div>a:0".as_bytes()));
+        assert_eq!(
+            obs.target_cid,
+            Cid::compute(WEB_ELEMENT_DOMAIN, "body>div>a:0".as_bytes())
+        );
         assert_eq!(obs.facts.len(), 4);
     }
 

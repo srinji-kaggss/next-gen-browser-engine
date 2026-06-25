@@ -26,7 +26,9 @@ impl PolicyBroker {
     pub fn decide(&self, _facts: &[WebAnchor], action: &Action, caps: &[WebCapability]) -> Verdict {
         // Rule 1: closed vocabulary.
         let verb_str = action.verb.as_str();
-        let _verb_ok = is_closed_verb(verb_str);
+        if !is_closed_verb(verb_str) {
+            return Verdict::Deny;
+        }
 
         // Rule 2: capability covers the verb. Empty caps => deny when deny-first is true.
         if self.deny_first && caps.is_empty() {
@@ -81,27 +83,16 @@ impl Default for PolicyBroker {
 }
 
 fn is_closed_verb(verb: &str) -> bool {
-    matches!(
-        verb,
-        "web.navigate"
-            | "web.observe"
-            | "web.click"
-            | "web.type"
-            | "web.scroll"
-            | "web.download"
-            | "web.wait"
-            | "web.execute_js"
-            | "web.execute_wasm"
-    )
+    braid_vocab_web::registry_v0().get(verb).is_some()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::capability::Attenuation;
+    use alloc::string::ToString;
     use alloc::vec;
     use alloc::vec::Vec;
-    use alloc::string::ToString;
 
     fn cap(verbs: Vec<ActionVerb>, origins: Vec<&str>) -> WebCapability {
         WebCapability {

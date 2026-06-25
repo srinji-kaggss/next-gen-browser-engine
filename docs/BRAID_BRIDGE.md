@@ -11,8 +11,9 @@ lens generated from the Braid anchor.
 
 ## 2. Braid Terms for the Browser
 
-These term families must be added to Braid's registry or mirrored by the browser
-until Braid accepts them:
+These term families are owned by Braid vocabulary packages. The closed action
+verbs are consumed from `braid-vocab-web`; observation payloads project into
+`braid_ir::Value` and do not recreate a local Braid enum.
 
 ### Observation terms
 - `web.obs.node { tag, role, text, attrs, stable_id, parent_cid, source }`
@@ -68,19 +69,19 @@ BLAKE3 over the canonical bytes. The same fact always hashes to the same CID.
 
 | File | Purpose | Status |
 |---|---|---|
-| `term.rs` | Braid term constructors, versioning | Implemented: `BraidTerm` enum and `WebObservation`/`WebActionTerm`/`WebCapabilityTerm`/`WebVerdict` structs. |
-| `adapter.rs` | `WebAnchor` ↔ Braid IR | Implemented: `BraidAdapter::to_braid` maps `TermFamily::Observation` to `BraidTerm::Observation`. Other families are stubs. |
+| `adapter.rs` | `WebAnchor` ↔ Braid IR | Implemented: `BraidAdapter::to_braid` maps `TermFamily::Observation` to canonical `braid_ir::Value`. Other families fail closed until they have canonical projections. |
 | `observation.rs` | Convert DOM/AX to observation terms | Deferred; `src/observation/anchor.rs` owns the canonical observation fact seam. |
 | `action.rs` | Convert action vocabulary to action terms | Deferred; `src/action/mod.rs` owns the closed `Action` seam. |
 | `capability.rs` | Convert capability sets to capability terms | Deferred; `src/capability/mod.rs` owns capability facts. |
 | `transition.rs` | Build tape transition terms | Deferred; `src/tape/fact_store.rs` is a stub. |
 | `executor.rs` | Braid action term → WebKit/AX execution | Deferred. |
-| `codec.rs` | Canonical serialization | Partial: `ObservationAnchor::canonical_bytes` defines a deterministic no_std format; target CBOR/protobuf seam in `proto/browser_state.proto`. |
+| `codec.rs` | Canonical serialization | Implemented for observations: `ObservationAnchor::canonical_bytes` uses Braid's canonical encoder over `braid_ir::Value`; protobuf remains a std-only wire seam in `proto/browser_state.proto`. |
 
-Current canonical CID uses SHA-256 (64 hex digits). Target hash function is BLAKE3; the `Cid = String` interface is final.
+Current canonical CID is `braid_ir::Cid`: BLAKE3 over domain-separated canonical
+bytes. Hex is only the text-wire form.
 
 ## 6. Dependency Boundary
 
-The browser depends on `braid-ir` and `braid-capability` from the Braid repo.
-It does not recreate Braid's registry. If Braid does not yet have web terms, the
-browser defines them in `src/braid_bridge/` and proposes them upstream.
+The browser depends on `braid-ir`, `braid-capability`, and `braid-vocab-web`
+from the Braid repo. It does not recreate Braid's registry or maintain a second
+closed action vocabulary.

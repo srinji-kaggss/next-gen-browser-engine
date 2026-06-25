@@ -14,9 +14,10 @@ serde_json = { version = "1.0", optional = true }
 # core both this browser and logic-os consume — neither depends on the other).
 # We bind the real crate, not a re-declared shadow: `Cid` here IS Braid's
 # domain-separated BLAKE3 CID. no_std so it lives in our no_std substrate (A18).
-# Pinned to Braid main @ the no_std merge (#12); move to a semver tag on release.
-braid-ir = { git = "https://github.com/srinji-kaggss/Braid", rev = "fdd8515" }
-braid-capability = { git = "https://github.com/srinji-kaggss/Braid", rev = "fdd8515" }
+# Pinned to Braid main @ the web vocabulary merge; move to a semver tag on release.
+braid-ir = { git = "https://github.com/srinji-kaggss/Braid", rev = "a9c9a0f1d75a78e735ef45e2f5388fefccbc4e99" }
+braid-capability = { git = "https://github.com/srinji-kaggss/Braid", rev = "a9c9a0f1d75a78e735ef45e2f5388fefccbc4e99" }
+braid-vocab-web = { git = "https://github.com/srinji-kaggss/Braid", rev = "a9c9a0f1d75a78e735ef45e2f5388fefccbc4e99" }
 
 # Protobuf wire encoding is available only in std builds. The no_std core
 # retains hand-written canonical types in src/browser_types.rs.
@@ -33,3 +34,8 @@ no_std = []
 [lib]
 name = "next_gen_browser_engine"
 path = "src/lib.rs"
+
+[[bin]]
+name = "export_web_vocab"
+path = "tools/export_web_vocab.rs"
+required-features = ["std"]

@@ -14,6 +14,23 @@ import sys
 from typing import Any
 
 
+def _escape_field(value: str) -> str:
+    """Keep one logical manifest field on one physical output line."""
+    out: list[str] = []
+    for char in value:
+        if char == "\\":
+            out.append("\\\\")
+        elif char == "\n":
+            out.append("\\n")
+        elif char == "\r":
+            out.append("\\r")
+        elif char == "\t":
+            out.append("\\t")
+        else:
+            out.append(char)
+    return "".join(out)
+
+
 def transform_to_okf_text(raw_json: str) -> str:
     """Convert a Braid anchor JSON blob into an OKF text manifest."""
     try:
@@ -25,8 +42,17 @@ def transform_to_okf_text(raw_json: str) -> str:
         return ""
 
 
-def _fact_dict(facts: list[list[str]]) -> dict[str, str]:
-    return {pred: obj for pred, obj in facts}
+def _fact_dict(facts: Any) -> dict[str, str]:
+    if not isinstance(facts, list):
+        return {}
+    out: dict[str, str] = {}
+    for fact in facts:
+        if not isinstance(fact, list) or len(fact) != 2:
+            continue
+        pred, obj = fact
+        if isinstance(pred, str) and isinstance(obj, str):
+            out[pred] = obj
+    return out
 
 
 def _is_interactable(fact_dict: dict[str, str]) -> bool:
@@ -35,6 +61,12 @@ def _is_interactable(fact_dict: dict[str, str]) -> bool:
 
 def _short_ref(cid: str) -> str:
     return cid[:8]
+
+
+def _record_sort_key(record: dict[str, Any]) -> tuple[int, str]:
+    kind = record.get("kind", "unknown")
+    rank = {"load": 0, "element": 1}.get(kind, 2)
+    return (rank, record.get("target_cid", ""))
 
 
 def render_okf(records: list[dict[str, Any]]) -> str:
@@ -56,25 +88,25 @@ def render_okf(records: list[dict[str, Any]]) -> str:
         for idx, r in enumerate(interactables)
     }
 
-    for record in records:
+    for record in sorted(records, key=_record_sort_key):
         kind = record.get("kind", "unknown")
         cid = record.get("target_cid", "")
         facts = _fact_dict(record.get("facts", []))
 
         if kind == "load":
-            url = facts.get("url", "")
-            title = facts.get("title", "")
+            url = _escape_field(facts.get("url", ""))
+            title = _escape_field(facts.get("title", ""))
             lines.append(f"[load] {url} | {title} | cid={_short_ref(cid)}")
             continue
 
         if kind != "element":
             continue
 
-        tag = facts.get("tag", "div")
-        text = facts.get("text", "").strip()
-        bounds = facts.get("bounds", "")
-        role = facts.get("role", "")
-        element_id = facts.get("id", "")
+        tag = _escape_field(facts.get("tag", "div"))
+        text = _escape_field(facts.get("text", "").strip())
+        bounds = _escape_field(facts.get("bounds", ""))
+        role = _escape_field(facts.get("role", ""))
+        element_id = _escape_field(facts.get("id", ""))
 
         attrs = []
         if bounds:

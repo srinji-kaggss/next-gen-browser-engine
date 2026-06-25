@@ -12,7 +12,7 @@ Fact {
   cid: BLAKE3(canonical_encoding),
   parent_cid: Option<CID>,
   kind: FactKind,
-  payload: BraidTerm,
+  payload: braid_ir::Value,
   provenance: Provenance,
   timestamp: MonotonicTick,
 }
@@ -51,7 +51,7 @@ anchor through `PixelAnchor`:
 ```text
 resolve(viewport_cid, x, y) -> Vec<(Candidate {
   element_cid,
-  coverage,      // 0.0..1.0
+  coverage_micros, // 0..1_000_000 fixed-point
   z_order,
   visibility,
   provenance,

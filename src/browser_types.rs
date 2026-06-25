@@ -161,6 +161,8 @@ impl Risk {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::collections::BTreeSet;
+    use alloc::string::ToString;
 
     #[test]
     fn domain_separation_distinguishes_anchor_and_element_cids() {
@@ -171,6 +173,20 @@ mod tests {
         let element = Cid::compute(WEB_ELEMENT_DOMAIN, b"body>div>a:0");
         assert_ne!(anchor, element);
         assert_eq!(anchor, Cid::compute(WEB_ANCHOR_DOMAIN, b"body>div>a:0"));
+    }
+
+    #[test]
+    fn action_verb_view_matches_braid_web_registry() {
+        let registry = braid_vocab_web::registry_v0();
+        let enum_verbs: BTreeSet<_> = ActionVerb::ALL
+            .iter()
+            .map(|verb| verb.as_str().to_string())
+            .collect();
+        let registry_verbs: BTreeSet<_> = registry.terms().map(|term| term.id.clone()).collect();
+        assert_eq!(enum_verbs, registry_verbs);
+        for verb in ActionVerb::ALL {
+            assert!(verb.is_registered());
+        }
     }
 }
 
@@ -189,6 +205,18 @@ pub enum ActionVerb {
 }
 
 impl ActionVerb {
+    pub const ALL: [ActionVerb; 9] = [
+        ActionVerb::Navigate,
+        ActionVerb::Observe,
+        ActionVerb::Click,
+        ActionVerb::Type,
+        ActionVerb::Scroll,
+        ActionVerb::Download,
+        ActionVerb::Wait,
+        ActionVerb::ExecuteJs,
+        ActionVerb::ExecuteWasm,
+    ];
+
     pub fn as_str(&self) -> &'static str {
         match self {
             ActionVerb::Navigate => "web.navigate",
@@ -201,6 +229,10 @@ impl ActionVerb {
             ActionVerb::ExecuteJs => "web.execute_js",
             ActionVerb::ExecuteWasm => "web.execute_wasm",
         }
+    }
+
+    pub fn is_registered(&self) -> bool {
+        braid_vocab_web::registry_v0().get(self.as_str()).is_some()
     }
 }
 

@@ -1,11 +1,8 @@
 //! Traceability: AXIOM_BRAID_CANONICAL, AXIOM_DERIVED_LENS.
-use crate::{
-    braid_bridge::term::*, browser_types::*, observation::anchor::observation_from_payload,
-};
-use alloc::string::{String, ToString};
-use alloc::vec::Vec;
+use crate::{browser_types::*, observation::anchor::observation_from_payload};
+use braid_ir::Value;
 
-/// Bidirectional adapter between canonical `WebAnchor` facts and Braid IR terms.
+/// Adapter between canonical `WebAnchor` facts and Braid IR values.
 pub struct BraidAdapter;
 
 impl BraidAdapter {
@@ -13,55 +10,24 @@ impl BraidAdapter {
         Self
     }
 
-    /// Project a canonical `WebAnchor` into a typed Braid term.
+    /// Project a canonical `WebAnchor` into the Braid value universe.
     ///
     /// Traceability: AXIOM_BRAID_CANONICAL, AXIOM_OBSERVABILITY_TYPED.
-    pub fn to_braid(anchor: &WebAnchor) -> Result<BraidTerm, &'static str> {
+    pub fn to_braid(anchor: &WebAnchor) -> Result<Value, &'static str> {
         match anchor.term_family {
             TermFamily::Observation => {
                 let obs = observation_from_payload(&anchor.payload)?;
-                let mut facts: Vec<(String, String)> = Vec::new();
-                facts.push(("kind".to_string(), obs.kind.as_str().to_string()));
-                for fact in &obs.facts {
-                    facts.push((fact.predicate.clone(), fact.object.clone()));
-                }
-                Ok(BraidTerm::Observation(WebObservation {
-                    kind: obs.kind.as_str().to_string(),
-                    target_cid: obs.target_cid,
-                    facts,
-                }))
+                Ok(obs.to_value())
             }
-            TermFamily::Element => {
-                // Payload is currently opaque for Element anchors.
-                Ok(BraidTerm::Element(WebElement {
-                    tag: "unknown".to_string(),
-                    attrs: Vec::new(),
-                    text: None,
-                }))
-            }
-            TermFamily::Action => Ok(BraidTerm::Action(WebActionTerm {
-                verb: "unknown".to_string(),
-                target_cid: anchor.cid,
-                parameters: Vec::new(),
-            })),
-            TermFamily::Capability => Ok(BraidTerm::Capability(WebCapabilityTerm {
-                issuer: "unknown".to_string(),
-                subject: "unknown".to_string(),
-                scope: Vec::new(),
-            })),
-            TermFamily::Verdict => Ok(BraidTerm::Verdict(WebVerdict {
-                decision: "unknown".to_string(),
-                reason: "unknown".to_string(),
-            })),
-            _ => Err("term family not yet mapped to Braid IR"),
+            _ => Err("term family not yet projected to Braid Value"),
         }
     }
 
-    /// Project a Braid term back into a canonical `WebAnchor`.
+    /// Project a Braid value back into a canonical `WebAnchor`.
     ///
     /// This is the inverse of `to_braid` for round-trip verification.
-    pub fn from_braid(_term: &BraidTerm) -> Result<WebAnchor, &'static str> {
-        // Deferred: full inverse requires canonical serialization of every Braid variant.
+    pub fn from_braid(_value: &Value) -> Result<WebAnchor, &'static str> {
+        // Deferred: full inverse requires canonical serialization of every projected family.
         Err("from_braid deferred behind seam")
     }
 }
@@ -75,9 +41,10 @@ impl Default for BraidAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
-    use alloc::string::ToString;
     use crate::observation::anchor::{Fact, ObservationAnchor, ObservationKind};
+    use alloc::string::ToString;
+    use alloc::vec;
+    use alloc::vec::Vec;
 
     #[test]
     fn observation_anchor_to_braid() {
@@ -101,15 +68,22 @@ mod tests {
             trust_class: TrustClass::UntrustedContent,
             did_principal: None,
         });
-        let term = BraidAdapter::to_braid(&anchor).unwrap();
-        match term {
-            BraidTerm::Observation(o) => {
-                assert_eq!(o.kind, "element");
-                assert_eq!(o.target_cid, Cid::compute(WEB_ELEMENT_DOMAIN, b"a1b2c3"));
-                assert!(o.facts.iter().any(|(k, _)| k == "tag"));
-            }
-            _ => panic!("expected Observation term"),
-        }
+        let value = BraidAdapter::to_braid(&anchor).unwrap();
+        assert_eq!(value.get("kind"), Some(&Value::Text("element".to_string())));
+        assert_eq!(
+            value.get("target_cid"),
+            Some(&Value::Bytes(
+                Cid::compute(WEB_ELEMENT_DOMAIN, b"a1b2c3").0.to_vec()
+            ))
+        );
+        let facts = match value.get("facts") {
+            Some(Value::List(facts)) => facts,
+            _ => panic!("expected facts list"),
+        };
+        assert!(facts.iter().any(|fact| {
+            fact.get("predicate") == Some(&Value::Text("tag".to_string()))
+                && fact.get("object") == Some(&Value::Text("a".to_string()))
+        }));
     }
 
     #[test]

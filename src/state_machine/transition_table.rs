@@ -80,8 +80,8 @@ pub enum BrowserState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec::Vec;
     use alloc::string::ToString;
+    use alloc::vec::Vec;
 
     fn action(verb: ActionVerb, risk: Risk) -> Action {
         Action {

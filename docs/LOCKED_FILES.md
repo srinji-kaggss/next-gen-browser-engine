@@ -53,7 +53,6 @@ These files define the foundational seam of the web-cognition substrate. They ar
 - `src/compute/mod.rs`
 - `src/audit/lens.rs`
 - `src/audit/mod.rs`
-- `src/braid_bridge/term.rs`
 - `src/braid_bridge/adapter.rs`
 - `src/braid_bridge/mod.rs`
 
@@ -63,6 +62,8 @@ These files define the foundational seam of the web-cognition substrate. They ar
 - `ci/registry.json`
 - `ci/run.mjs`
 - `ci/structural_airworthiness_gate.mjs`
+- `ci/generated/web_action_verbs.json`
+- `tools/export_web_vocab.rs`
 
 ## Diagrams
 

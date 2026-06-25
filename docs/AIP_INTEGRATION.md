@@ -39,10 +39,10 @@ The bundle adds new cross-cutting concerns:
 | AIP concept | AX-Browser seam | Notes |
 |---|---|---|
 | `/.well-known/agent-policy.json` | `src/boundary/url_policy.rs` + `src/policy/broker.rs` | Site policy becomes a capability input, not the authority. |
-| `/agent/state`, `/agent/actions` | `src/observation/anchor.rs` + `src/braid_bridge/` | AIP state/action graphs are observations, then canonical Braid terms. |
-| Agent State Tree (AST) | `BraidTerm::Observation(WebObservation)` | Term family `web.observation.aip_state`. |
-| Agent Action Graph (AAG) | `BraidTerm::Action(WebActionTerm)` + `WebAction.verb` | AAG actions map to the closed `web.*` vocabulary or are unrepresentable. |
-| Agent Policy Graph (APG) | `BraidTerm::Verdict` + capability scope | Site policy is evidence; broker is authority. |
+| `/agent/state`, `/agent/actions` | `src/observation/anchor.rs` + `src/braid_bridge/` | AIP state/action graphs are observations, then canonical `braid_ir::Value` projections. |
+| Agent State Tree (AST) | `ObservationAnchor` with `ObservationKind::AipState` | Term family `web.obs.aip_state`. |
+| Agent Action Graph (AAG) | `Action.verb` checked against `braid-vocab-web` | AAG actions map to the closed `web.*` vocabulary or are unrepresentable. |
+| Agent Policy Graph (APG) | Policy facts + capability scope | Site policy is evidence; broker is authority. |
 | DID delegation envelope | `WebCapability` issuer/subject + signature | DIDs become capability principals. |
 | Privacy tier | `PrivacyTier` + `SensitivityClass` | Model exposure is a policy decision with redaction projection. |
 | Risk level | `Risk` enum | `low`, `medium`, `high`, `human_only`, `denied`. |
@@ -97,7 +97,7 @@ signed releases.
 ## 6. New Rust Types
 
 - `PrivacyTier`, `SensitivityClass`, `Risk` in `src/browser_types.rs`.
-- `AipState`, `AipAffordance`, `AipPolicy` terms in `src/braid_bridge/term.rs`.
+- AIP state and policy records project through `ObservationAnchor` into `braid_ir::Value`.
 - `WebCapability` gains `privacy_tier` and `delegation` fields.
 - `Provenance` gains `trust_class` and `did_principal` fields.
 

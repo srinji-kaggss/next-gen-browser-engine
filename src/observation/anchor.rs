@@ -29,7 +29,7 @@ impl ObservationAnchor {
     }
 
     /// Project this observation into the canonical Braid value universe.
-    fn to_value(&self) -> Value {
+    pub fn to_value(&self) -> Value {
         let mut sorted = self.facts.clone();
         sorted.sort_by(|a, b| a.predicate.cmp(&b.predicate));
         let facts: Vec<Value> = sorted
@@ -49,9 +49,15 @@ impl ObservationAnchor {
             ("facts", Value::List(facts)),
             ("kind", Value::Text(self.kind.as_str().to_string())),
             ("observed_at", Value::Text(self.observed_at.clone())),
-            ("privacy_tier", Value::Text(self.privacy_tier.as_str().to_string())),
+            (
+                "privacy_tier",
+                Value::Text(self.privacy_tier.as_str().to_string()),
+            ),
             ("target_cid", Value::Bytes(self.target_cid.0.to_vec())),
-            ("trust_class", Value::Text(self.trust_class.as_str().to_string())),
+            (
+                "trust_class",
+                Value::Text(self.trust_class.as_str().to_string()),
+            ),
         ])
     }
 
@@ -212,8 +218,8 @@ fn parse_sensitivity_class(s: &str) -> Result<SensitivityClass, &'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
     use alloc::string::ToString;
+    use alloc::vec;
 
     fn sample_observation() -> ObservationAnchor {
         ObservationAnchor {
