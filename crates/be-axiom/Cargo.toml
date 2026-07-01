@@ -1,0 +1,11 @@
+[package]
+name = "be-axiom"
+version = "0.1.0"
+edition = "2021"
+description = "Content-addressed primitives (CID, capsule, wire) — copied from logicalworks-/axiom with TODO to consolidate with braid-ir"
+
+[dependencies]
+blake3 = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+hex = "0.4"

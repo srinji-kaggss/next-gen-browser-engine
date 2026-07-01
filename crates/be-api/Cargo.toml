@@ -1,0 +1,24 @@
+[package]
+name = "be-api"
+version = "0.1.0"
+edition = "2021"
+description = "HTTP API server. Exposes semantic graph and PULSE frames."
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true }
+url = { workspace = true }
+be-dom = { path = "../be-dom" }
+be-parser = { path = "../be-parser" }
+be-net = { path = "../be-net" }
+be-transpiler = { path = "../be-transpiler" }
+be-a11y = { path = "../be-a11y" }
+be-layout = { path = "../be-layout" }
+be-semantic = { path = "../be-semantic" }
+be-pulse = { path = "../be-pulse" }
+be-search = { path = "../be-search" }
+
+[dev-dependencies]
+tower = { workspace = true }

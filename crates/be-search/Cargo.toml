@@ -1,0 +1,14 @@
+[package]
+name = "be-search"
+version = "0.1.0"
+edition = "2021"
+description = "Semantic Index state fabric — scoped, capability-gated retrieval with 10-layer defense-in-depth."
+
+[dependencies]
+blake3 = { workspace = true }
+tracing = { workspace = true }
+tantivy = { workspace = true }
+dashmap = { workspace = true }
+
+[features]
+test-fixtures = []

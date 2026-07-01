@@ -1,41 +1,86 @@
+[workspace]
+members = [
+    "crates/be-parser",
+    "crates/be-dom",
+    "crates/be-a11y",
+    "crates/be-layout",
+    "crates/be-semantic",
+    "crates/be-pulse",
+    "crates/be-api",
+    "crates/be-taint",
+    "crates/be-lanes",
+    "crates/be-axiom",
+    "crates/be-braid",
+    "crates/be-capability",
+    "crates/be-net",
+    "crates/be-search",
+    "crates/be-transpiler",
+]
+resolver = "2"
+
+[workspace.dependencies]
+# === FROM BRAID (path deps) ===
+braid-ir = { path = "/Users/srinji/Braid/crates/braid-ir" }
+braid-verify = { path = "/Users/srinji/Braid/crates/braid-verify" }
+braid-capability = { path = "/Users/srinji/Braid/crates/braid-capability" }
+
+# === SWC (transpiler parsing) ===
+swc_ecma_parser = { version = "41", features = ["typescript"] }
+swc_ecma_ast = "25"
+swc_common = "23"
+
+# === FROM CRATES.IO ===
+reqwest = { version = "0.13", features = ["rustls", "cookies", "gzip", "brotli", "deflate", "http2"] }
+url = "2"
+html5ever = "0.39"
+markup5ever_rcdom = "0.39"
+tendril = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+axum = "0.8"
+tower = "0.5"
+tokio = { version = "1", features = ["full"] }
+blake3 = "1.8"
+
+# === SEARCH (be-search) ===
+tantivy = { version = "0.26", default-features = false }
+dashmap = "6"
+
+# === SYNCED FROM LOGIC-OS-KERNEL (same versions) ===
+strum = { version = "0.26.3", features = ["derive"] }
+thiserror = "2.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
 [package]
-name = "next-gen-browser-engine"
+name = "browser-engine"
 version = "0.1.0"
 edition = "2021"
-authors = ["srinji-kaggss"]
-description = "AI-first deterministic web-cognition substrate"
-license = "MIT"
-
-[dependencies]
-serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
-serde_json = { version = "1.0", optional = true }
-
-# The canonical content-address + IR is OWNED by Braid (the one machine-first
-# core both this browser and logic-os consume — neither depends on the other).
-# We bind the real crate, not a re-declared shadow: `Cid` here IS Braid's
-# domain-separated BLAKE3 CID. no_std so it lives in our no_std substrate (A18).
-# Pinned to Braid main @ the web vocabulary merge; move to a semver tag on release.
-braid-ir = { git = "https://github.com/srinji-kaggss/Braid", rev = "a9c9a0f1d75a78e735ef45e2f5388fefccbc4e99" }
-braid-capability = { git = "https://github.com/srinji-kaggss/Braid", rev = "a9c9a0f1d75a78e735ef45e2f5388fefccbc4e99" }
-braid-vocab-web = { git = "https://github.com/srinji-kaggss/Braid", rev = "a9c9a0f1d75a78e735ef45e2f5388fefccbc4e99" }
-
-# Protobuf wire encoding is available only in std builds. The no_std core
-# retains hand-written canonical types in src/browser_types.rs.
-prost = { version = "0.13", default-features = false, features = ["derive", "std"], optional = true }
-
-[build-dependencies]
-prost-build = { version = "0.13", optional = true }
-
-[features]
-default = ["std"]
-std = ["prost", "prost-build", "serde_json"]
-no_std = []
-
-[lib]
-name = "next_gen_browser_engine"
-path = "src/lib.rs"
+description = "Browser engine with native AI surface and PULSE semantic API"
 
 [[bin]]
-name = "export_web_vocab"
-path = "tools/export_web_vocab.rs"
-required-features = ["std"]
+name = "browser-engine"
+path = "src/main.rs"
+
+[[test]]
+name = "test_parse_and_query"
+path = "tests/integration/test_parse_and_query.rs"
+
+[dependencies]
+be-api = { path = "crates/be-api" }
+be-net = { path = "crates/be-net" }
+reqwest = { workspace = true }
+url = { workspace = true }
+tokio = { workspace = true }
+axum = { workspace = true }
+swc_ecma_parser = { workspace = true }
+swc_ecma_ast = { workspace = true }
+swc_common = { workspace = true }
+
+[dev-dependencies]
+be-parser = { path = "crates/be-parser" }
+be-a11y = { path = "crates/be-a11y" }
+be-layout = { path = "crates/be-layout" }
+be-semantic = { path = "crates/be-semantic" }
+be-pulse = { path = "crates/be-pulse" }

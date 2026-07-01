@@ -1,0 +1,15 @@
+[package]
+name = "be-semantic"
+version = "0.1.0"
+edition = "2021"
+description = "Semantic graph builder. Merges a11y + layout into structured graph for PULSE API."
+
+[dependencies]
+serde = { workspace = true }
+be-dom = { path = "../be-dom" }
+be-a11y = { path = "../be-a11y" }
+be-layout = { path = "../be-layout" }
+be-capability = { path = "../be-capability" }
+
+[dev-dependencies]
+be-parser = { path = "../be-parser" }

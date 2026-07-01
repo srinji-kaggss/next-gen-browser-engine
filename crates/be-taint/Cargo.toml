@@ -1,0 +1,9 @@
+[package]
+name = "be-taint"
+version = "0.1.0"
+edition = "2021"
+description = "Data flow taint tracking — security labels for data flows. TODO: move to canvas-syscall when stable."
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }

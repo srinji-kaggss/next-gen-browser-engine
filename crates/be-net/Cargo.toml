@@ -1,0 +1,14 @@
+[package]
+name = "be-net"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+reqwest = { workspace = true }
+url = { workspace = true }
+thiserror = { workspace = true }
+be-capability = { path = "../be-capability" }
+be-taint = { path = "../be-taint" }
+
+[dev-dependencies]
+tokio = { workspace = true }

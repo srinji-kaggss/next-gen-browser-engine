@@ -1,0 +1,12 @@
+[package]
+name = "be-layout"
+version = "0.1.0"
+edition = "2021"
+description = "Basic layout engine. Positions, sizes, visibility."
+
+[dependencies]
+serde = { workspace = true }
+be-dom = { path = "../be-dom" }
+
+[dev-dependencies]
+be-parser = { path = "../be-parser" }

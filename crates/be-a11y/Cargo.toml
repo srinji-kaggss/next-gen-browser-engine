@@ -1,0 +1,12 @@
+[package]
+name = "be-a11y"
+version = "0.1.0"
+edition = "2021"
+description = "Accessibility tree builder. Semantic roles, labels, states, relationships."
+
+[dependencies]
+serde = { workspace = true }
+be-dom = { path = "../be-dom" }
+
+[dev-dependencies]
+be-parser = { path = "../be-parser" }
