@@ -13,18 +13,12 @@ members = [
     "crates/be-braid",
     "crates/be-capability",
     "crates/be-net",
+    "crates/be-search",
     "crates/be-transpiler",
 ]
 resolver = "2"
 
 [workspace.dependencies]
-# === FROM LOGIC-OS-KERNEL (path deps) ===
-canvas-protocol = { path = "/Users/srinji/logic-os-kernel/kernel/crates/canvas-protocol" }
-canvas-syscall = { path = "/Users/srinji/logic-os-kernel/kernel/crates/canvas-syscall" }
-canvas-attest-verify = { path = "/Users/srinji/logic-os-kernel/kernel/crates/canvas-attest-verify" }
-tape-store = { path = "/Users/srinji/logic-os-kernel/kernel/crates/tape-store" }
-warden = { path = "/Users/srinji/logic-os-kernel/kernel/crates/warden" }
-
 # === FROM BRAID (path deps) ===
 braid-ir = { path = "/Users/srinji/Braid/crates/braid-ir" }
 braid-verify = { path = "/Users/srinji/Braid/crates/braid-verify" }
@@ -38,9 +32,7 @@ swc_common = "23"
 # === FROM CRATES.IO ===
 reqwest = { version = "0.13", features = ["rustls", "cookies", "gzip", "brotli", "deflate", "http2"] }
 url = "2"
-mime_guess = "2"
 html5ever = "0.39"
-markup5ever = "0.14"
 markup5ever_rcdom = "0.39"
 tendril = "0.4"
 serde = { version = "1.0", features = ["derive"] }
@@ -50,9 +42,12 @@ tower = "0.5"
 tokio = { version = "1", features = ["full"] }
 blake3 = "1.8"
 
+# === SEARCH (be-search) ===
+tantivy = { version = "0.26", default-features = false }
+dashmap = "6"
+
 # === SYNCED FROM LOGIC-OS-KERNEL (same versions) ===
 strum = { version = "0.26.3", features = ["derive"] }
-strum_macros = "0.26.4"
 thiserror = "2.0"
 anyhow = "1.0"
 tracing = "0.1"
@@ -77,7 +72,6 @@ be-api = { path = "crates/be-api" }
 be-net = { path = "crates/be-net" }
 reqwest = { workspace = true }
 url = { workspace = true }
-mime_guess = { workspace = true }
 tokio = { workspace = true }
 axum = { workspace = true }
 swc_ecma_parser = { workspace = true }

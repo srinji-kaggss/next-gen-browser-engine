@@ -5,7 +5,6 @@ edition = "2021"
 description = "Braid adapter — bridges Braid IR substrate into the browser engine. Houses the web.* vocabulary."
 
 [dependencies]
-serde = { workspace = true }
 thiserror = { workspace = true }
 be-capability = { path = "../be-capability" }
 braid-ir = { workspace = true }

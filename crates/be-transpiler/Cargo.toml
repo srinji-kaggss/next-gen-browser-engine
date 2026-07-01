@@ -5,7 +5,6 @@ edition = "2021"
 description = "JS source transpiler. Converts raw JS into semantic terms."
 
 [dependencies]
-serde = { workspace = true }
 be-capability = { path = "../be-capability" }
 swc_ecma_parser = { workspace = true }
 swc_ecma_ast = { workspace = true }

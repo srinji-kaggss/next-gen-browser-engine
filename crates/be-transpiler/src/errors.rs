@@ -8,13 +8,4 @@ pub enum TranspileError {
         col: usize,
         message: String,
     },
-
-    #[error("Unsupported syntax: {0}")]
-    UnsupportedSyntax(String),
-
-    #[error("Capability inference failed: {0}")]
-    CapabilityInferenceFailed(String),
-
-    #[error("AST walk error: {0}")]
-    AstWalkError(String),
 }

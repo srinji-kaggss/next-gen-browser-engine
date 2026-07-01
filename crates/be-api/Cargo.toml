@@ -18,6 +18,7 @@ be-a11y = { path = "../be-a11y" }
 be-layout = { path = "../be-layout" }
 be-semantic = { path = "../be-semantic" }
 be-pulse = { path = "../be-pulse" }
+be-search = { path = "../be-search" }
 
 [dev-dependencies]
 tower = { workspace = true }

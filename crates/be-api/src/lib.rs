@@ -7,11 +7,12 @@
 //! Depends on be-parser, be-semantic, be-pulse.
 //! This is the outermost layer. Changes here don't affect internals.
 
-use axum::extract::Query;
+use axum::extract::{Query, State};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 /// Request to parse HTML and get semantic graph.
 #[derive(Debug, Deserialize)]
@@ -26,14 +27,18 @@ pub struct ParseResponse {
     pub affordance_count: usize,
 }
 
-/// Create the API router.
+/// Create the API router with an optionally shared search engine.
 pub fn app() -> Router {
+    let search = Arc::new(be_search::BrowserSearch::new());
+
     Router::new()
         .route("/health", get(health))
         .route("/parse", post(parse_handler))
         .route("/fetch", get(fetch_page))
         .route("/transpile", post(transpile_js))
         .route("/load", get(load_page))
+        .route("/search", get(search_handler))
+        .with_state(search)
 }
 
 async fn health() -> &'static str {
@@ -171,6 +176,51 @@ async fn load_page(
         "scripts_transpiled": transpile_results.len(),
         "transpile_results": transpile_results,
     })))
+}
+
+/// Search request query parameters.
+#[derive(Debug, Deserialize)]
+pub struct SearchParams {
+    pub q: String,
+    pub reason: Option<String>,
+    pub limit: Option<usize>,
+    pub session: Option<u64>,
+    pub tenant: Option<u64>,
+    pub page_origin: Option<u64>,
+    pub capabilities: Option<u64>,
+}
+
+async fn search_handler(
+    State(search): State<Arc<be_search::BrowserSearch>>,
+    Query(params): Query<SearchParams>,
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, String)> {
+    use be_search::*;
+
+    let scope = Scope::new(
+        params.page_origin.unwrap_or(0),
+        params.session.unwrap_or(0),
+        params.tenant.unwrap_or(0),
+        CapSet::from_bits(params.capabilities.unwrap_or(1)),
+    );
+
+    let request = SearchRequest::new(&params.q, params.limit.unwrap_or(10))
+        .with_reason(params.reason.unwrap_or_default());
+
+    match search.search(request, &scope) {
+        Ok(candidates) => Ok(Json(serde_json::json!({
+            "count": candidates.len(),
+            "candidates": candidates.iter().map(|c| serde_json::json!({
+                "node_id": c.node_id,
+                "kind": c.kind.as_str(),
+                "excerpt": &*c.excerpt,
+                "evidence_refs": c.evidence_refs,
+            })).collect::<Vec<_>>(),
+        }))),
+        Err(e) => Err((
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Search failed: {}", e),
+        )),
+    }
 }
 
 /// Walk the DOM tree and collect NodeIds of all <script> elements.

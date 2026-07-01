@@ -26,7 +26,6 @@ fn test_parse_invalid_js() {
         TranspileError::ParseError { message, .. } => {
             assert!(!message.is_empty());
         }
-        _ => panic!("Expected ParseError"),
     }
 }
 

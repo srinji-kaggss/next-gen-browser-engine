@@ -6,4 +6,3 @@ description = "DOM tree implementation. The structural truth of a web page."
 
 [dependencies]
 serde = { workspace = true }
-thiserror = { workspace = true }

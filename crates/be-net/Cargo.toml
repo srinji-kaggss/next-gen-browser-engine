@@ -6,10 +6,6 @@ edition = "2024"
 [dependencies]
 reqwest = { workspace = true }
 url = { workspace = true }
-mime_guess = { workspace = true }
-tokio = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
 thiserror = { workspace = true }
 be-capability = { path = "../be-capability" }
 be-taint = { path = "../be-taint" }
