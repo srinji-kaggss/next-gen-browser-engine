@@ -1,0 +1,208 @@
+{
+  "verifiers": [
+    {
+      "id": "CMP.gov.structure",
+      "name": "Governance structure check",
+      "type": "foundation",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase foundation"
+    },
+    {
+      "id": "CMP.map.reconcile",
+      "name": "Traceability matrix reconciliation",
+      "type": "foundation",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase traceability"
+    },
+    {
+      "id": "CMP.doc.format",
+      "name": "Documentation format validation",
+      "type": "foundation",
+      "dal": "D",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase docs"
+    },
+    {
+      "id": "COH.vocab.closed",
+      "name": "Closed action vocabulary enforcement",
+      "type": "security",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase vocab"
+    },
+    {
+      "id": "COH.dup.sot",
+      "name": "Single source of truth duplication check",
+      "type": "foundation",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase dup"
+    },
+    {
+      "id": "ORG.audit.dup-struct",
+      "name": "Audit duplicate structure detection",
+      "type": "foundation",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase audit-struct"
+    },
+    {
+      "id": "CMP.api.coverage",
+      "name": "API coverage check",
+      "type": "foundation",
+      "dal": "B",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase api-coverage"
+    },
+    {
+      "id": "SEC.forbidden.api",
+      "name": "Forbidden API scan",
+      "type": "security",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase forbidden-api"
+    },
+    {
+      "id": "SEC.capability.reach",
+      "name": "Capability reachability analysis",
+      "type": "security",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase capability-reach"
+    },
+    {
+      "id": "SEC.origin.policy",
+      "name": "Origin policy enforcement",
+      "type": "security",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase origin-policy"
+    },
+    {
+      "id": "SEC.prompt.inject",
+      "name": "Prompt injection surface scan",
+      "type": "security",
+      "dal": "B",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase prompt-inject"
+    },
+    {
+      "id": "COV.fmt",
+      "name": "Rustfmt formatting",
+      "type": "build",
+      "dal": "E",
+      "command": "cargo fmt --check"
+    },
+    {
+      "id": "COV.clippy",
+      "name": "Clippy lint",
+      "type": "build",
+      "dal": "C",
+      "command": "cargo clippy --all-targets -- -D warnings"
+    },
+    {
+      "id": "COV.check",
+      "name": "Cargo check no_std",
+      "type": "build",
+      "dal": "A",
+      "command": "cargo check --no-default-features --features no_std"
+    },
+    {
+      "id": "COH.port.coreNostd",
+      "name": "Core no_std portability",
+      "type": "portability",
+      "dal": "A",
+      "command": "cargo check --no-default-features --features no_std"
+    },
+    {
+      "id": "COV.workspace.test",
+      "name": "Workspace tests",
+      "type": "test",
+      "dal": "A",
+      "command": "cargo test"
+    },
+    {
+      "id": "COV.transition.mcdc",
+      "name": "State-machine transition MC/DC coverage",
+      "type": "test",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase mcdc"
+    },
+    {
+      "id": "COV.per-crate.build",
+      "name": "Per-crate build verification",
+      "type": "test",
+      "dal": "B",
+      "command": "cargo check --all-targets"
+    },
+    {
+      "id": "CMP.supply.audit",
+      "name": "Supply chain audit",
+      "type": "audit",
+      "dal": "C",
+      "command": "cargo audit"
+    },
+    {
+      "id": "ORG.tool.qualification",
+      "name": "Tool qualification check",
+      "type": "audit",
+      "dal": "C",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase tool-qual"
+    },
+    {
+      "id": "COH.proto.schema",
+      "name": "Protocol schema coherence",
+      "type": "contract",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase schema"
+    },
+    {
+      "id": "COV.parser.equivalence",
+      "name": "Parser equivalence verification",
+      "type": "contract",
+      "dal": "A",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase parser-equiv"
+    },
+    {
+      "id": "COV.layout.pixel.diff",
+      "name": "Layout pixel diff coverage",
+      "type": "contract",
+      "dal": "B",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase pixel-diff"
+    },
+    {
+      "id": "PERF.frame.budget",
+      "name": "Frame budget gate",
+      "type": "performance",
+      "dal": "B",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase frame-budget"
+    },
+    {
+      "id": "PERF.alloc.budget",
+      "name": "Allocation budget gate",
+      "type": "performance",
+      "dal": "B",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase alloc-budget"
+    },
+    {
+      "id": "PERF.observe.latency",
+      "name": "Observation latency gate",
+      "type": "performance",
+      "dal": "C",
+      "command": "node ci/structural_airworthiness_gate.mjs --phase observe-latency"
+    }
+  ],
+  "mandates": [
+    {
+      "id": "MANDATE.no_ambient_authority",
+      "description": "No source file below src/ may access ambient authority without a capability parameter."
+    },
+    {
+      "id": "MANDATE.closed_vocabulary",
+      "description": "Only the nine web.* action verbs are permitted in src/action and src/state_machine."
+    },
+    {
+      "id": "MANDATE.braid_anchor",
+      "description": "All state-bearing modules must import browser_types::WebAnchor as canonical reference."
+    },
+    {
+      "id": "MANDATE.deterministic_broker",
+      "description": "policy::broker::PolicyBroker must be pure: no randomness, no LLM, no network."
+    },
+    {
+      "id": "MANDATE.llm_sensor_only",
+      "description": "No LLM call site may produce a Verdict, Cid, or capability token."
+    }
+  ]
+}

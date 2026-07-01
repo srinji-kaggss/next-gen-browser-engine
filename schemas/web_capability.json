@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://next-gen-browser-engine.ai/schemas/web_capability.json",
+  "title": "WebCapability",
+  "description": "A signed, scoped, attenuation-only capability token.",
+  "type": "object",
+  "required": ["issuer", "subject", "scope", "attenuation", "issued_at", "expires_at", "signature"],
+  "properties": {
+    "issuer": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "attenuation": {
+      "type": "object",
+      "required": ["allowed_verbs", "allowed_origins", "max_bytes", "max_calls"],
+      "properties": {
+        "allowed_verbs": { "type": "array", "items": { "type": "string" } },
+        "allowed_origins": { "type": "array", "items": { "type": "string" } },
+        "max_bytes": { "type": "integer", "minimum": 0 },
+        "max_calls": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signature": {
+      "type": "string"
+    }
+  }
+}

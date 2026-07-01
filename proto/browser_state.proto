@@ -1,0 +1,277 @@
+// Protobuf wire format for AX-Browser canonical state.
+//
+// This is the machine-to-machine representation used by the mac-eye native
+// bridge and by the Rust engine FFI. The canonical in-memory type graph in
+// src/browser_types.rs is the source of truth; these messages are a
+// deterministic, versioned serialization of that graph.
+//
+// Traceability: AXIOM_BRAID_CANONICAL, AXIOM_OBSERVABILITY_TYPED,
+// AXIOM_CLOSED_ACTIONS, AXIOM_POLICY_AUTHORITY.
+
+syntax = "proto3";
+
+package ax_browser.v1;
+
+// ---------------------------------------------------------------------------
+// Primitive aliases
+// ---------------------------------------------------------------------------
+
+// CID: content-addressed digest rendered as 64 lowercase hex digits.
+// Target hash function is BLAKE3; current implementation uses SHA-256.
+message Cid { string hex = 1; }
+
+// Origin: scheme+host+port, e.g. "https://example.com".
+message Origin { string value = 1; }
+
+// URL: normalized URL string.
+message Url { string value = 1; }
+
+// DID: decentralized identifier principal.
+message Did { string value = 1; }
+
+// ---------------------------------------------------------------------------
+// Trust / privacy primitives
+// ---------------------------------------------------------------------------
+
+enum TrustClass {
+  TRUST_CLASS_UNSPECIFIED = 0;
+  TRUST_CLASS_SYSTEM_POLICY = 1;
+  TRUST_CLASS_DEVELOPER_POLICY = 2;
+  TRUST_CLASS_USER_INTENT = 3;
+  TRUST_CLASS_TRUSTED_STATE = 4;
+  TRUST_CLASS_UNTRUSTED_CONTENT = 5;
+}
+
+enum PrivacyTier {
+  PRIVACY_TIER_UNSPECIFIED = 0;
+  PRIVACY_TIER_LOCAL_FULL = 1;
+  PRIVACY_TIER_CLOUD_REDACTED = 2;
+  PRIVACY_TIER_CLOUD_SELECTIVE_REVEAL = 3;
+  PRIVACY_TIER_CLOUD_FULL_CONTEXT_EXPLICIT = 4;
+}
+
+enum SensitivityClass {
+  SENSITIVITY_CLASS_UNSPECIFIED = 0;
+  SENSITIVITY_CLASS_PUBLIC = 1;
+  SENSITIVITY_CLASS_LOW_SENSITIVITY = 2;
+  SENSITIVITY_CLASS_PERSONAL = 3;
+  SENSITIVITY_CLASS_CONFIDENTIAL = 4;
+  SENSITIVITY_CLASS_SECRET = 5;
+  SENSITIVITY_CLASS_AUTHENTICATOR = 6;
+  SENSITIVITY_CLASS_PAYMENT = 7;
+  SENSITIVITY_CLASS_HEALTH = 8;
+  SENSITIVITY_CLASS_LEGAL = 9;
+  SENSITIVITY_CLASS_FINANCIAL = 10;
+  SENSITIVITY_CLASS_CHILD_OR_DEPENDENT = 11;
+}
+
+// ---------------------------------------------------------------------------
+// Risk and verdict
+// ---------------------------------------------------------------------------
+
+enum Risk {
+  RISK_UNSPECIFIED = 0;
+  RISK_LOW = 1;
+  RISK_MEDIUM = 2;
+  RISK_HIGH = 3;
+  RISK_HUMAN_ONLY = 4;
+  RISK_DENIED = 5;
+}
+
+enum Verdict {
+  VERDICT_UNSPECIFIED = 0;
+  VERDICT_ALLOW = 1;
+  VERDICT_DENY = 2;
+  VERDICT_CONFIRM = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Closed action vocabulary
+// ---------------------------------------------------------------------------
+
+enum ActionVerb {
+  ACTION_VERB_UNSPECIFIED = 0;
+  ACTION_VERB_NAVIGATE = 1;     // web.navigate
+  ACTION_VERB_OBSERVE = 2;      // web.observe
+  ACTION_VERB_CLICK = 3;        // web.click
+  ACTION_VERB_TYPE = 4;         // web.type
+  ACTION_VERB_SCROLL = 5;       // web.scroll
+  ACTION_VERB_DOWNLOAD = 6;     // web.download
+  ACTION_VERB_WAIT = 7;         // web.wait
+  ACTION_VERB_EXECUTE_JS = 8;   // web.execute_js
+  ACTION_VERB_EXECUTE_WASM = 9; // web.execute_wasm
+}
+
+message Action {
+  ActionVerb verb = 1;
+  Cid target_cid = 2;
+  Cid capability_cid = 3;
+  Risk risk = 4;
+  bytes parameters = 5;
+  repeated string effect_signature = 6;
+}
+
+// ---------------------------------------------------------------------------
+// Capability attenuation
+// ---------------------------------------------------------------------------
+
+message Attenuation {
+  repeated ActionVerb allowed_verbs = 1;
+  repeated string allowed_origins = 2;
+  uint64 max_bytes = 3;
+  uint64 max_calls = 4;
+}
+
+message Capability {
+  Did issuer_did = 1;
+  Did subject_did = 2;
+  repeated string scope = 3;
+  PrivacyTier privacy_tier = 4;
+  Attenuation attenuation = 5;
+  string issued_at = 6;  // RFC 3339
+  string expires_at = 7; // RFC 3339
+  bytes signature = 8;
+}
+
+// ---------------------------------------------------------------------------
+// Observation facts
+// ---------------------------------------------------------------------------
+
+enum ObservationKind {
+  OBSERVATION_KIND_UNSPECIFIED = 0;
+  OBSERVATION_KIND_LOAD = 1;
+  OBSERVATION_KIND_LAYOUT = 2;
+  OBSERVATION_KIND_PAINT = 3;
+  OBSERVATION_KIND_ELEMENT = 4;
+  OBSERVATION_KIND_NETWORK = 5;
+  OBSERVATION_KIND_CONSOLE = 6;
+  OBSERVATION_KIND_A11Y = 7;
+  OBSERVATION_KIND_SEMANTIC = 8;
+  OBSERVATION_KIND_AIP_STATE = 9;
+  OBSERVATION_KIND_AIP_POLICY = 10;
+}
+
+message Fact {
+  string predicate = 1;
+  string object = 2;
+  SensitivityClass sensitivity = 3;
+}
+
+message Observation {
+  ObservationKind kind = 1;
+  Cid target_cid = 2;
+  string observed_at = 3;  // RFC 3339
+  repeated Fact facts = 4;
+  SensitivityClass sensitivity = 5;
+  PrivacyTier privacy_tier = 6;
+  TrustClass trust_class = 7;
+  string raw_source = 8;   // redacted or omitted before model exposure
+}
+
+// ---------------------------------------------------------------------------
+// Canonical WebAnchor (Braid-like term graph node)
+// ---------------------------------------------------------------------------
+
+enum TermFamily {
+  TERM_FAMILY_UNSPECIFIED = 0;
+  TERM_FAMILY_ELEMENT = 1;          // web.element
+  TERM_FAMILY_OBSERVATION = 2;      // web.observation
+  TERM_FAMILY_ACTION = 3;           // web.action
+  TERM_FAMILY_CAPABILITY = 4;       // web.capability
+  TERM_FAMILY_VERDICT = 5;          // web.verdict
+  TERM_FAMILY_TRANSITION = 6;       // web.transition
+  TERM_FAMILY_AIP_STATE = 7;        // web.obs.aip_state
+  TERM_FAMILY_AIP_POLICY = 8;       // web.obs.aip_policy
+  TERM_FAMILY_AIP_ACTION = 9;       // web.act.aip_action
+  TERM_FAMILY_AIP_DELEGATION = 10;  // web.cap.aip_delegation
+}
+
+message Provenance {
+  string source = 1;
+  repeated Cid input_cids = 2;
+  TrustClass trust_class = 3;
+  Did did_principal = 4;
+}
+
+message WebAnchor {
+  Cid cid = 1;
+  TermFamily term_family = 2;
+  string created_at = 3;
+  Provenance provenance = 4;
+  bytes payload = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Tape (append-only transition record)
+// ---------------------------------------------------------------------------
+
+message TapeRecord {
+  uint64 index = 1;
+  Cid parent_cid = 2;
+  Cid state_snapshot_cid = 3;
+  Cid action_cid = 4;
+  Cid policy_verdict_cid = 5;
+  Cid execution_trace_cid = 6;
+  Cid outcome_cid = 7;
+}
+
+// ---------------------------------------------------------------------------
+// Browser engine state machine
+// ---------------------------------------------------------------------------
+
+enum BrowserState {
+  BROWSER_STATE_UNSPECIFIED = 0;
+  BROWSER_STATE_IDLE = 1;
+  BROWSER_STATE_NAVIGATING = 2;
+  BROWSER_STATE_OBSERVING = 3;
+  BROWSER_STATE_QUIESCENT = 4;
+  BROWSER_STATE_EXECUTING = 5;
+  BROWSER_STATE_TERMINATED = 6;
+}
+
+// ---------------------------------------------------------------------------
+// Request/response envelopes used by the FFI
+// ---------------------------------------------------------------------------
+
+message EngineConfig {
+  string user_agent = 1;
+  bool deny_first = 2;
+  repeated string allowed_schemes = 3;
+}
+
+message NavigateRequest {
+  Url url = 1;
+  Cid capability_cid = 2;
+}
+
+message NavigateResponse {
+  Verdict verdict = 1;
+  string reason = 2;
+  Cid observation_cid = 3;
+  BrowserState new_state = 4;
+}
+
+message ObserveRequest {
+  Cid scope_cid = 1;
+  Cid capability_cid = 2;
+}
+
+message ObserveResponse {
+  Verdict verdict = 1;
+  string reason = 2;
+  repeated Cid observation_cids = 3;
+  BrowserState new_state = 4;
+}
+
+message ExecuteRequest {
+  Action action = 1;
+  Cid capability_cid = 2;
+}
+
+message ExecuteResponse {
+  Verdict verdict = 1;
+  string reason = 2;
+  bytes outcome = 3;
+  Cid outcome_cid = 4;
+  BrowserState new_state = 5;
+}

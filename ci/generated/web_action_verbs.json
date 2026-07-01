@@ -1,0 +1,11 @@
+[
+  "web.click",
+  "web.download",
+  "web.execute_js",
+  "web.execute_wasm",
+  "web.navigate",
+  "web.observe",
+  "web.scroll",
+  "web.type",
+  "web.wait"
+]

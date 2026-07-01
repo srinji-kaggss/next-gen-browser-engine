@@ -1,0 +1,62 @@
+flowchart TD
+    subgraph foundation["GATE: foundation"]
+        f1[CMP.gov.structure]
+        f2[CMP.map.reconcile]
+        f3[CMP.doc.format]
+        f4[COH.vocab.closed]
+        f5[COH.dup.sot]
+        f6[ORG.audit.dup-struct]
+        f7[CMP.api.coverage]
+    end
+
+    subgraph security["GATE: security"]
+        s1[SEC.forbidden.api]
+        s2[SEC.capability.reach]
+        s3[SEC.origin.policy]
+        s4[SEC.prompt.inject]
+    end
+
+    subgraph build["GATE: build"]
+        b1[COV.fmt]
+        b2[COV.clippy]
+        b3[COV.check]
+    end
+
+    subgraph portability["GATE: portability"]
+        p1[COH.port.coreNostd]
+    end
+
+    subgraph test["GATE: test"]
+        t1[COV.workspace.test]
+        t2[COV.transition.mcdc]
+        t3[COV.per-crate.build]
+    end
+
+    subgraph audit["GATE: audit"]
+        a1[CMP.supply.audit]
+        a2[ORG.tool.qualification]
+    end
+
+    subgraph contract["GATE: contract"]
+        c1[COH.proto.schema]
+        c2[COV.parser.equivalence]
+        c3[COV.layout.pixel.diff]
+    end
+
+    subgraph performance["GATE: performance"]
+        pf1[PERF.frame.budget]
+        pf2[PERF.alloc.budget]
+        pf3[PERF.observe.latency]
+    end
+
+    foundation --> security
+    security --> build
+    build --> portability
+    portability --> test
+    test --> audit
+    audit --> contract
+    contract --> performance
+
+    performance --> gate[CI-GATE required status]
+
+    changes["changes detector"] --> foundation

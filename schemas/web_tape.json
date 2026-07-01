@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://next-gen-browser-engine.ai/schemas/web_tape.json",
+  "title": "WebTape",
+  "description": "An append-only, content-addressed, hash-chained record of browser transitions.",
+  "type": "object",
+  "required": ["head", "prev_hash", "entries", "sealed_at"],
+  "properties": {
+    "head": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "prev_hash": {
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/tape_entry" }
+    },
+    "sealed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "definitions": {
+    "tape_entry": {
+      "type": "object",
+      "required": ["index", "cid", "term_family", "timestamp", "prev_hash", "record_hash"],
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "cid": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "term_family": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "prev_hash": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "record_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}

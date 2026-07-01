@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://next-gen-browser-engine.ai/schemas/aip_state.json",
+  "title": "AIP State",
+  "description": "Compact symbolic state exposed to a user-delegated agent.",
+  "type": "object",
+  "required": ["version", "surface", "state", "affordances", "memory"],
+  "properties": {
+    "version": { "type": "string" },
+    "surface": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "url": { "type": "string" },
+        "state_version": { "type": ["string", "integer"] }
+      }
+    },
+    "state": { "type": "object", "additionalProperties": true },
+    "affordances": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/affordance" }
+    },
+    "memory": { "$ref": "#/definitions/memory" },
+    "risk": { "type": "object", "additionalProperties": true },
+    "bindings": { "type": "object", "additionalProperties": true }
+  },
+  "definitions": {
+    "affordance": {
+      "type": "object",
+      "required": ["id", "kind", "label", "risk"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "type": "string" },
+        "label": { "type": "string" },
+        "risk": { "enum": ["low", "medium", "high", "human_only", "denied"] },
+        "requires_human_confirmation": { "type": "boolean" },
+        "preconditions": { "type": "array", "items": { "type": "string" } },
+        "postconditions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "required": ["scope", "training", "export"],
+      "properties": {
+        "scope": { "enum": ["none", "session", "persistent_with_consent"] },
+        "training": { "type": "boolean" },
+        "export": { "type": "boolean" },
+        "retention_seconds": { "type": ["integer", "null"] }
+      }
+    }
+  }
+}
