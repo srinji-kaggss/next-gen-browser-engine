@@ -80,7 +80,9 @@ impl BraidAdapter for DefaultBraidAdapter {
     fn verify(&self, capsule_bytes: &[u8], ambient: &[Capability]) -> Result<Cid, BraidError> {
         match braid_verify::verify(capsule_bytes, &self.registry, ambient) {
             Verdict::Admit { capsule_cid } => Ok(capsule_cid),
-            Verdict::Reject { stage, reason } => Err(BraidError::VerificationFailed { stage, reason }),
+            Verdict::Reject { stage, reason } => {
+                Err(BraidError::VerificationFailed { stage, reason })
+            }
         }
     }
 

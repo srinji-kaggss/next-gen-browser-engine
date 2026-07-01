@@ -34,7 +34,11 @@ pub enum WireError {
     #[error("bad varint: {0}")]
     BadVarint(String),
     #[error("truncated: need {needed} bytes at offset {offset}, have {have}")]
-    Truncated { offset: usize, needed: usize, have: usize },
+    Truncated {
+        offset: usize,
+        needed: usize,
+        have: usize,
+    },
     #[error("non-canonical wire bytes")]
     NonCanonical,
 }
@@ -144,14 +148,16 @@ pub fn decode(data: &[u8]) -> Result<Vec<Field>, WireError> {
 
         match wire_type {
             VARINT => {
-                let (value, new_offset) = decode_uleb128(data, offset)
-                    .map_err(|e| WireError::BadVarint(format!("value for field {}: {}", field_no, e)))?;
+                let (value, new_offset) = decode_uleb128(data, offset).map_err(|e| {
+                    WireError::BadVarint(format!("value for field {}: {}", field_no, e))
+                })?;
                 offset = new_offset;
                 fields.push(Field::Varint { field_no, value });
             }
             LEN => {
-                let (length, new_offset) = decode_uleb128(data, offset)
-                    .map_err(|e| WireError::BadVarint(format!("length for field {}: {}", field_no, e)))?;
+                let (length, new_offset) = decode_uleb128(data, offset).map_err(|e| {
+                    WireError::BadVarint(format!("length for field {}: {}", field_no, e))
+                })?;
                 offset = new_offset;
                 let length = length as usize;
                 if offset + length > data.len() {
@@ -202,9 +208,18 @@ mod tests {
     #[test]
     fn test_wire_roundtrip() {
         let fields = vec![
-            Field::Varint { field_no: 1, value: 42 },
-            Field::Len { field_no: 2, value: b"hello".to_vec() },
-            Field::Varint { field_no: 3, value: 0 },
+            Field::Varint {
+                field_no: 1,
+                value: 42,
+            },
+            Field::Len {
+                field_no: 2,
+                value: b"hello".to_vec(),
+            },
+            Field::Varint {
+                field_no: 3,
+                value: 0,
+            },
         ];
         let encoded = encode(&fields);
         let decoded = decode(&encoded).unwrap();
@@ -214,8 +229,14 @@ mod tests {
     #[test]
     fn test_wire_canonical() {
         let fields = vec![
-            Field::Varint { field_no: 1, value: 42 },
-            Field::Len { field_no: 2, value: b"hello".to_vec() },
+            Field::Varint {
+                field_no: 1,
+                value: 42,
+            },
+            Field::Len {
+                field_no: 2,
+                value: b"hello".to_vec(),
+            },
         ];
         let encoded = encode(&fields);
         let decoded = decode_canonical(&encoded).unwrap();

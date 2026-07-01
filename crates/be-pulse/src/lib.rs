@@ -22,9 +22,16 @@ pub enum Frame {
     /// Action: do something.
     DoAction { action: String, handle: u64 },
     /// Result: action succeeded.
-    OkAction { action: String, handle: u64, result: String },
+    OkAction {
+        action: String,
+        handle: u64,
+        result: String,
+    },
     /// Mutation: page changed.
-    PageChanged { added: Vec<String>, removed: Vec<String> },
+    PageChanged {
+        added: Vec<String>,
+        removed: Vec<String>,
+    },
 }
 
 /// A single affordance entry in a PULSE response.
@@ -51,10 +58,7 @@ pub fn encode_affordances(graph: &SemanticGraph) -> String {
             let label = node.map(|n| n.label.as_str()).unwrap_or("");
             format!(
                 "{}:{}:{:?} \"{}\"",
-                a.target.0,
-                a.action,
-                a.required_capability,
-                label
+                a.target.0, a.action, a.required_capability, label
             )
         })
         .collect();
@@ -151,7 +155,11 @@ mod tests {
         match frame {
             Frame::OkAffordances { affordances } => {
                 let click = affordances.iter().find(|a| a.action == "click");
-                assert!(click.is_some(), "Expected a click affordance, got: {:?}", affordances);
+                assert!(
+                    click.is_some(),
+                    "Expected a click affordance, got: {:?}",
+                    affordances
+                );
                 assert_eq!(click.unwrap().label, "OK");
             }
             _ => panic!("Expected OkAffordances frame"),
@@ -172,7 +180,10 @@ mod tests {
 
     #[test]
     fn test_frame_cid_deterministic() {
-        let frame = Frame::DoAction { action: "click".to_string(), handle: 0 };
+        let frame = Frame::DoAction {
+            action: "click".to_string(),
+            handle: 0,
+        };
         let cid1 = frame_cid(&frame);
         let cid2 = frame_cid(&frame);
         assert_eq!(cid1, cid2);

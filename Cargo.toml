@@ -11,6 +11,9 @@ members = [
     "crates/be-lanes",
     "crates/be-axiom",
     "crates/be-braid",
+    "crates/be-capability",
+    "crates/be-net",
+    "crates/be-transpiler",
 ]
 resolver = "2"
 
@@ -27,7 +30,15 @@ braid-ir = { path = "/Users/srinji/Braid/crates/braid-ir" }
 braid-verify = { path = "/Users/srinji/Braid/crates/braid-verify" }
 braid-capability = { path = "/Users/srinji/Braid/crates/braid-capability" }
 
+# === SWC (transpiler parsing) ===
+swc_ecma_parser = { version = "41", features = ["typescript"] }
+swc_ecma_ast = "25"
+swc_common = "23"
+
 # === FROM CRATES.IO ===
+reqwest = { version = "0.13", features = ["rustls", "cookies", "gzip", "brotli", "deflate", "http2"] }
+url = "2"
+mime_guess = "2"
 html5ever = "0.39"
 markup5ever = "0.14"
 markup5ever_rcdom = "0.39"
@@ -35,6 +46,7 @@ tendril = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 axum = "0.8"
+tower = "0.5"
 tokio = { version = "1", features = ["full"] }
 blake3 = "1.8"
 
@@ -62,8 +74,15 @@ path = "tests/integration/test_parse_and_query.rs"
 
 [dependencies]
 be-api = { path = "crates/be-api" }
+be-net = { path = "crates/be-net" }
+reqwest = { workspace = true }
+url = { workspace = true }
+mime_guess = { workspace = true }
 tokio = { workspace = true }
 axum = { workspace = true }
+swc_ecma_parser = { workspace = true }
+swc_ecma_ast = { workspace = true }
+swc_common = { workspace = true }
 
 [dev-dependencies]
 be-parser = { path = "crates/be-parser" }
@@ -71,4 +90,3 @@ be-a11y = { path = "crates/be-a11y" }
 be-layout = { path = "crates/be-layout" }
 be-semantic = { path = "crates/be-semantic" }
 be-pulse = { path = "crates/be-pulse" }
-be-capability = { path = "crates/be-capability" }

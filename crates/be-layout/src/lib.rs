@@ -22,7 +22,12 @@ pub struct Rect {
 
 impl Rect {
     pub fn zero() -> Self {
-        Self { x: 0.0, y: 0.0, width: 0.0, height: 0.0 }
+        Self {
+            x: 0.0,
+            y: 0.0,
+            width: 0.0,
+            height: 0.0,
+        }
     }
 }
 
@@ -93,8 +98,8 @@ fn display_type(dom: &DomTree, id: NodeId) -> Display {
             // Block elements
             "div" | "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "ul" | "ol" | "li"
             | "table" | "tr" | "td" | "th" | "form" | "section" | "article" | "header"
-            | "footer" | "nav" | "main" | "aside" | "blockquote" | "pre" | "hr" | "br"
-            |             "html" | "body" => Display::Block,
+            | "footer" | "nav" | "main" | "aside" | "blockquote" | "pre" | "hr" | "br" | "html"
+            | "body" => Display::Block,
             // Hidden elements
             "script" | "style" | "meta" | "link" | "title" | "head" => Display::None,
             // Inline elements
@@ -233,9 +238,11 @@ mod tests {
     fn test_block_stacking() {
         let tree = parse_and_layout(r#"<div><p>A</p><p>B</p></div>"#);
         // Find the two paragraph boxes
-        let p_boxes: Vec<_> = tree.boxes.iter().filter(|b| {
-            b.display == Display::Block && b.rect.height > 0.0
-        }).collect();
+        let p_boxes: Vec<_> = tree
+            .boxes
+            .iter()
+            .filter(|b| b.display == Display::Block && b.rect.height > 0.0)
+            .collect();
         // They should have different y positions (stacked)
         if p_boxes.len() >= 2 {
             assert!(p_boxes[1].rect.y > p_boxes[0].rect.y);
@@ -270,8 +277,11 @@ mod tests {
         let tree = parse_and_layout(r#"<div><h1>Title</h1><p>Body</p></div>"#);
         for b in &tree.boxes {
             if b.display != Display::None {
-                assert!(b.rect.width > 0.0 || b.rect.height > 0.0,
-                    "Element {:?} has zero size", b.element);
+                assert!(
+                    b.rect.width > 0.0 || b.rect.height > 0.0,
+                    "Element {:?} has zero size",
+                    b.element
+                );
             }
         }
     }

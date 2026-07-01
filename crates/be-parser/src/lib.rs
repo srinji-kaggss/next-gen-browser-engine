@@ -109,10 +109,13 @@ mod tests {
         // Find the div — it'll be under html > body > div
         let root = dom.root();
         let html_node = dom.children(root)[0]; // html
-        // html has head and body as children
-        let body = dom.children(html_node).iter().find(|&&id| {
-            dom.tag_name(id) == Some("body")
-        }).copied().unwrap();
+                                               // html has head and body as children
+        let body = dom
+            .children(html_node)
+            .iter()
+            .find(|&&id| dom.tag_name(id) == Some("body"))
+            .copied()
+            .unwrap();
         let div = dom.children(body)[0];
         assert_eq!(dom.tag_name(div), Some("div"));
         assert_eq!(dom.get_attribute(div, "class"), Some("test"));

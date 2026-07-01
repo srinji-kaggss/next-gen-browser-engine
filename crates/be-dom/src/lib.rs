@@ -110,9 +110,7 @@ impl DomTree {
 
     /// Get children of a node.
     pub fn children(&self, id: NodeId) -> &[NodeId] {
-        self.get(id)
-            .map(|n| n.children.as_slice())
-            .unwrap_or(&[])
+        self.get(id).map(|n| n.children.as_slice()).unwrap_or(&[])
     }
 
     /// Get the parent of a node.

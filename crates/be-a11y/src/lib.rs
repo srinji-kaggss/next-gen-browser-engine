@@ -182,9 +182,7 @@ fn compute_states(dom: &DomTree, id: NodeId) -> States {
             .map(|_| true)
             .or_else(|| dom.get_attribute(id, "aria-checked").map(|v| v == "true")),
         focused: dom.get_attribute(id, "autofocus").is_some(),
-        expanded: dom
-            .get_attribute(id, "aria-expanded")
-            .map(|v| v == "true"),
+        expanded: dom.get_attribute(id, "aria-expanded").map(|v| v == "true"),
         selected: dom.get_attribute(id, "selected").is_some(),
     }
 }

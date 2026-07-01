@@ -2,10 +2,10 @@
 //!
 //! Tests the full pipeline from raw HTML to AI-consumable affordances.
 
-use be_parser::parse_html;
 use be_a11y::Role;
-use be_semantic::{Action, SemanticGraph};
+use be_parser::parse_html;
 use be_pulse::{build_frames, encode_affordances, Frame};
+use be_semantic::{Action, SemanticGraph};
 
 /// Parse HTML through the full pipeline and return the semantic graph.
 fn pipeline(html: &str) -> SemanticGraph {
@@ -24,9 +24,10 @@ fn test_full_pipeline_button() {
     assert!(button.is_some(), "Button node missing from semantic graph");
     assert_eq!(button.unwrap().label, "Sign In");
 
-    let click = graph.affordances.iter().find(|a| {
-        matches!(a.action, Action::Click) && a.target == button.unwrap().handle
-    });
+    let click = graph
+        .affordances
+        .iter()
+        .find(|a| matches!(a.action, Action::Click) && a.target == button.unwrap().handle);
     assert!(click.is_some(), "Click affordance missing for button");
 }
 
@@ -49,16 +50,21 @@ fn test_full_pipeline_form() {
     assert!(button.is_some(), "Submit button missing");
 
     // Textbox should have fill affordance
-    let fill = graph.affordances.iter().find(|a| {
-        matches!(a.action, Action::Fill { .. })
-    });
+    let fill = graph
+        .affordances
+        .iter()
+        .find(|a| matches!(a.action, Action::Fill { .. }));
     assert!(fill.is_some(), "Fill affordance missing for textbox");
 
     // Button should have click affordance
-    let click = graph.affordances.iter().find(|a| {
-        matches!(a.action, Action::Click)
-    });
-    assert!(click.is_some(), "Click affordance missing for submit button");
+    let click = graph
+        .affordances
+        .iter()
+        .find(|a| matches!(a.action, Action::Click));
+    assert!(
+        click.is_some(),
+        "Click affordance missing for submit button"
+    );
 }
 
 #[test]
@@ -66,7 +72,11 @@ fn test_full_pipeline_links() {
     let html = r#"<nav><a href="/about">About</a><a href="/contact">Contact</a></nav>"#;
     let graph = pipeline(html);
 
-    let links: Vec<_> = graph.nodes.iter().filter(|n| n.role == Role::Link).collect();
+    let links: Vec<_> = graph
+        .nodes
+        .iter()
+        .filter(|n| n.role == Role::Link)
+        .collect();
     assert_eq!(links.len(), 2, "Expected 2 links, got {}", links.len());
 }
 
@@ -115,12 +125,16 @@ fn test_full_pipeline_hidden_elements() {
     let graph = pipeline(html);
 
     // Hidden paragraph should not have affordances
-    let hidden_p = graph.nodes.iter().find(|n| {
-        n.role == Role::Paragraph && n.label == "Hidden"
-    });
+    let hidden_p = graph
+        .nodes
+        .iter()
+        .find(|n| n.role == Role::Paragraph && n.label == "Hidden");
     // Hidden elements may still be in the graph but should have zero position
     if let Some(hidden) = hidden_p {
-        assert_eq!(hidden.position.width, 0.0, "Hidden element should have zero width");
+        assert_eq!(
+            hidden.position.width, 0.0,
+            "Hidden element should have zero width"
+        );
     }
 }
 
@@ -155,8 +169,11 @@ fn test_full_pipeline_complex_page() {
     let graph = pipeline(html);
 
     // Should have multiple affordances
-    assert!(graph.affordances.len() >= 5,
-        "Expected at least 5 affordances, got {}", graph.affordances.len());
+    assert!(
+        graph.affordances.len() >= 5,
+        "Expected at least 5 affordances, got {}",
+        graph.affordances.len()
+    );
 
     // Check specific roles exist
     let has_heading = graph.nodes.iter().any(|n| n.role == Role::Heading);

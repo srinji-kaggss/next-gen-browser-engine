@@ -216,35 +216,50 @@ mod tests {
     #[test]
     fn test_button_affordance() {
         let (_, _, _, graph) = parse_build_all(r#"<button>Click me</button>"#);
-        let click = graph.affordances.iter().find(|a| matches!(a.action, Action::Click));
+        let click = graph
+            .affordances
+            .iter()
+            .find(|a| matches!(a.action, Action::Click));
         assert!(click.is_some());
     }
 
     #[test]
     fn test_link_affordance() {
         let (_, _, _, graph) = parse_build_all(r#"<a href="/home">Home</a>"#);
-        let click = graph.affordances.iter().find(|a| matches!(a.action, Action::Click));
+        let click = graph
+            .affordances
+            .iter()
+            .find(|a| matches!(a.action, Action::Click));
         assert!(click.is_some());
     }
 
     #[test]
     fn test_textbox_affordance() {
         let (_, _, _, graph) = parse_build_all(r#"<input type="text" aria-label="Name">"#);
-        let fill = graph.affordances.iter().find(|a| matches!(a.action, Action::Fill { .. }));
+        let fill = graph
+            .affordances
+            .iter()
+            .find(|a| matches!(a.action, Action::Fill { .. }));
         assert!(fill.is_some());
     }
 
     #[test]
     fn test_readtext_affordance() {
         let (_, _, _, graph) = parse_build_all(r#"<h1>Title</h1>"#);
-        let read = graph.affordances.iter().find(|a| matches!(a.action, Action::ReadText));
+        let read = graph
+            .affordances
+            .iter()
+            .find(|a| matches!(a.action, Action::ReadText));
         assert!(read.is_some());
     }
 
     #[test]
     fn test_checkbox_affordance() {
         let (_, _, _, graph) = parse_build_all(r#"<input type="checkbox">"#);
-        let click = graph.affordances.iter().find(|a| matches!(a.action, Action::Click));
+        let click = graph
+            .affordances
+            .iter()
+            .find(|a| matches!(a.action, Action::Click));
         assert!(click.is_some());
     }
 
@@ -252,7 +267,10 @@ mod tests {
     fn test_combo_affordances() {
         let (_, _, _, graph) = parse_build_all(r#"<select><option>A</option></select>"#);
         // ComboBox should have both Click and Select
-        let select = graph.affordances.iter().find(|a| matches!(a.action, Action::Select));
+        let select = graph
+            .affordances
+            .iter()
+            .find(|a| matches!(a.action, Action::Select));
         assert!(select.is_some());
     }
 
@@ -272,14 +290,23 @@ mod tests {
         let button = graph.nodes.iter().find(|n| n.role == Role::Button);
         assert!(button.is_some());
         // Handle should be valid
-        assert_eq!(button.unwrap().handle, ElementHandle(button.unwrap().id as u64));
+        assert_eq!(
+            button.unwrap().handle,
+            ElementHandle(button.unwrap().id as u64)
+        );
     }
 
     #[test]
     fn test_required_capability() {
         let (_, _, _, graph) = parse_build_all(r#"<button>OK</button>"#);
-        let click = graph.affordances.iter().find(|a| matches!(a.action, Action::Click));
+        let click = graph
+            .affordances
+            .iter()
+            .find(|a| matches!(a.action, Action::Click));
         assert!(click.is_some());
-        assert_eq!(click.unwrap().required_capability, Capability::DomActionClick);
+        assert_eq!(
+            click.unwrap().required_capability,
+            Capability::DomActionClick
+        );
     }
 }

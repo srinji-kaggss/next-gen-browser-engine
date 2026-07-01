@@ -76,7 +76,10 @@ pub enum CapabilityError {
     #[error("capability denied: {required:?} not in granted set")]
     Denied { required: Capability },
     #[error("capability escalation: cannot widen {original:?} to {wider:?}")]
-    Escalation { original: Capability, wider: Capability },
+    Escalation {
+        original: Capability,
+        wider: Capability,
+    },
 }
 
 /// The privacy level — controls what capabilities are available.
